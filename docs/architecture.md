@@ -40,6 +40,7 @@ A Next.js 16 App Router app (React 19, Tailwind CSS 4, shadcn, CodeMirror 6). Al
 | `app/page.tsx` | The main page, plus the `Summary` component and its formatting helpers (`formatColumn`, `formatEndpoint`, `formatEnum`). |
 | `app/api/diff/route.ts` | Compare endpoint and the unclosed-block pre-check. |
 | `lib/compare.ts` | `compareSchemas()`: runs dbml-diff and all emitters. Used by `/api/diff` and `/api/share`. |
+| `lib/share-request.ts` | `shareRequestBody()`: the body the browser sends to `/api/share` (the compared schemas only). |
 | `app/api/share/route.ts` | Share endpoint. |
 | `app/c/[id]/page.tsx` | Shared comparison page. |
 | `app/layout.tsx` | Root layout, metadata, Vercel Analytics and Speed Insights. |

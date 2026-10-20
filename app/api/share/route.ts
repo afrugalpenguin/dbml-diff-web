@@ -3,7 +3,6 @@ import { nanoid } from 'nanoid'
 import { compareSchemas } from '../../../lib/compare'
 import { encodeComparison, MAX_REDIS_VALUE_BYTES, storedComparisonBytes } from '../../../lib/share-storage'
 import { apiRateLimit, MAX_SCHEMA_BYTES, requestIp, utf8Bytes } from '../../../lib/request-limits'
-import { diff, emitDbml, emitJson, emitMigration, emitText } from 'dbml-diff'
 
 export const runtime = 'nodejs'
 
@@ -22,12 +21,11 @@ export async function POST(request: Request) {
       return Response.json({ error: 'Both DBML schemas are required.' }, { status: 400 })
     }
 
-    const result = diff(oldDbml, newDbml)
-    const parsedResult = JSON.parse(emitJson(result))
+    const output = compareSchemas(oldDbml, newDbml)
     const comparison = {
       id: nanoid(10), oldDbml, newDbml,
-      createdAt: new Date().toISOString(), parsedResult,
-      text: emitText(result), migration: emitMigration(result), dbml: emitDbml(result),
+      createdAt: new Date().toISOString(), parsedResult: output.parsedResult,
+      text: output.text, migration: output.migration, dbml: output.dbml,
     }
     const stored = encodeComparison(comparison)
     const storedBytes = storedComparisonBytes(stored)
