@@ -30,7 +30,5 @@ All diffing is done by the package. Never reimplement diff logic in the app.
 - Run `pnpm test` and `pnpm build`, and say what you ran and the result.
 
 ## Style
-- No em dashes or en dashes anywhere (code, copy, docs, commits). Use a hyphen or restructure.
 - Conventional commits: type(scope): description, subject 72 chars or less.
-- No co-author trailers in commits.
 - Terminology: "Schema A" and "Schema B", "added in B", "removed in B", "SQL to turn A into B".
