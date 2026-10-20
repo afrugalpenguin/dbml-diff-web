@@ -1,6 +1,6 @@
 import { nanoid } from 'nanoid'
 import { apiRateLimit, MAX_SCHEMA_BYTES, requestIp, utf8Bytes } from '../../../lib/request-limits'
-import { diff, emitDbml, emitJson, emitMigration, emitText } from 'dbml-diff'
+import { compareSchemas } from '../../../lib/compare'
 
 export const runtime = 'nodejs'
 
@@ -54,17 +54,15 @@ export async function POST(request: Request) {
       return Response.json({ error: `Updated schema has an unclosed block starting on line ${unclosedNewLine}. Add a closing }.`, diagnostic: { schema: 'new', line: unclosedNewLine } }, { status: 400 })
     }
 
-    const result = diff(oldDbml, newDbml)
-    const json = emitJson(result)
-    const parsed = JSON.parse(json)
+    const output = compareSchemas(oldDbml, newDbml)
     const comparison = {
       id: nanoid(10), oldDbml, newDbml,
       createdAt: new Date().toISOString(),
-      counts: parsed.counts,
-      result: json,
-      text: emitText(result), migration: emitMigration(result), dbml: emitDbml(result),
+      counts: output.counts,
+      result: output.result,
+      text: output.text, migration: output.migration, dbml: output.dbml,
     }
-    return Response.json({ ...comparison, parsedResult: parsed })
+    return Response.json({ ...comparison, parsedResult: output.parsedResult })
   } catch (error) {
     const diagnostic = typeof error === 'object' && error !== null && 'diags' in error
       ? (error as { diags?: Array<{ message?: string; location?: { start?: { line?: number; column?: number } } }> }).diags?.[0]

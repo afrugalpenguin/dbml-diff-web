@@ -1,4 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { readFileSync } from 'node:fs'
+import { diff, emitDbml, emitJson, emitMigration, emitText } from 'dbml-diff'
 
 const { mockLimit, mockSet, mockEncode } = vi.hoisted(() => ({
   mockLimit: vi.fn().mockResolvedValue({ success: true }),
@@ -38,6 +40,18 @@ vi.mock('../../../lib/share-storage', () => ({
 }))
 
 import { POST } from './route'
+import { encodeComparison, storedComparisonBytes } from '../../../lib/share-storage'
+
+const oldDbml = readFileSync('ref-add-remove-v1.dbml', 'utf8')
+const newDbml = readFileSync('ref-add-remove-v2.dbml', 'utf8')
+
+function share(body: unknown) {
+  return POST(new Request('http://localhost/api/share', {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify(body),
+  }))
+}
 
 describe('POST /api/share', () => {
   beforeEach(() => {
@@ -71,6 +85,51 @@ describe('POST /api/share', () => {
     await expect(response.json()).resolves.toEqual({
       error: 'This comparison is too large to share. It is still available on screen.',
     })
+    expect(mockSet).not.toHaveBeenCalled()
+  })
+
+  it('stores server-computed output and ignores client-supplied results', async () => {
+    vi.mocked(storedComparisonBytes).mockReturnValueOnce(100)
+    const result = diff(oldDbml, newDbml)
+
+    const response = await share({
+      oldDbml,
+      newDbml,
+      parsedResult: { counts: { added: 99, removed: 99, modified: 99 } },
+      text: 'TAMPERED text',
+      migration: 'TAMPERED migration',
+      dbml: 'TAMPERED dbml',
+    })
+
+    expect(response.status).toBe(200)
+    const stored = vi.mocked(encodeComparison).mock.calls[0][0] as Record<string, unknown>
+    expect(stored.oldDbml).toBe(oldDbml)
+    expect(stored.newDbml).toBe(newDbml)
+    expect(stored.text).toBe(emitText(result))
+    expect(stored.migration).toBe(emitMigration(result))
+    expect(stored.dbml).toBe(emitDbml(result))
+    expect(stored.parsedResult).toEqual(JSON.parse(emitJson(result)))
+    expect(mockSet).toHaveBeenCalledWith(`comparison:${stored.id}`, expect.anything(), { ex: 60 * 60 * 24 * 30 })
+  })
+
+  it('returns 400 and stores nothing when a schema is missing', async () => {
+    const response = await share({ oldDbml, text: 'TAMPERED text', parsedResult: { counts: {} } })
+
+    expect(response.status).toBe(400)
+    expect(mockSet).not.toHaveBeenCalled()
+  })
+
+  it('returns 400 and stores nothing when a schema is not a string', async () => {
+    const response = await share({ oldDbml, newDbml: 42, text: 'TAMPERED text', parsedResult: { counts: {} } })
+
+    expect(response.status).toBe(400)
+    expect(mockSet).not.toHaveBeenCalled()
+  })
+
+  it('returns 400 and stores nothing when a schema is invalid DBML', async () => {
+    const response = await share({ oldDbml, newDbml: 'Table broken { id int [pk', text: 'TAMPERED text', parsedResult: { counts: {} } })
+
+    expect(response.status).toBe(400)
     expect(mockSet).not.toHaveBeenCalled()
   })
 })

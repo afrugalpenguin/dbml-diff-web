@@ -1,5 +1,6 @@
 import { Redis } from '@upstash/redis'
 import { nanoid } from 'nanoid'
+import { compareSchemas } from '../../../lib/compare'
 import { encodeComparison, MAX_REDIS_VALUE_BYTES, storedComparisonBytes } from '../../../lib/share-storage'
 import { apiRateLimit, MAX_SCHEMA_BYTES, requestIp, utf8Bytes } from '../../../lib/request-limits'
 import { diff, emitDbml, emitJson, emitMigration, emitText } from 'dbml-diff'
