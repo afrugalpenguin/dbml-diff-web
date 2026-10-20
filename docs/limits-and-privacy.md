@@ -34,4 +34,4 @@ The server parses the JSON request body before checking schema sizes, so the out
 ## Third parties
 
 - Vercel Analytics and Vercel Speed Insights run in production builds only (page views and web vitals, no editor content).
-- The page fetches the latest dbml-diff release tag from the GitHub API in the browser to show the version badge (see [#5](https://github.com/afrugalpenguin/dbml-diff-web/issues/5)).
+- The page fetches the latest dbml-diff release tag from the GitHub API in the browser to show the version badge (see [#18](https://github.com/afrugalpenguin/dbml-diff-web/issues/18)).
