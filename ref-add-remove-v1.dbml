@@ -1,0 +1,8 @@
+Table dbo.Parent {
+  id int [pk]
+}
+Table dbo.Child {
+  id int [pk]
+  parent_id int
+}
+Ref: dbo.Child.parent_id > dbo.Parent.id

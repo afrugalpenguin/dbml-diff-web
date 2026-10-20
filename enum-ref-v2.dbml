@@ -1,0 +1,17 @@
+Enum dbo.Status {
+  pending
+  active
+  archived
+}
+Table dbo.Users {
+  id int [pk]
+  status dbo.Status
+}
+Table dbo.Orders {
+  id int
+  user_id int
+}
+Table dbo.Accounts {
+  id int [pk]
+}
+Ref: dbo.Orders.user_id > dbo.Accounts.id

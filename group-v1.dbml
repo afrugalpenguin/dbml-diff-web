@@ -1,0 +1,16 @@
+TABLE dbo.A {
+  Id INT [pk]
+}
+TABLE dbo.B {
+  Id INT [pk]
+}
+TABLE dbo.C {
+  Id INT [pk]
+}
+TableGroup "Changed" {
+  dbo.A
+  dbo.B
+}
+TableGroup "Removed" {
+  dbo.C
+}
