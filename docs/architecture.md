@@ -23,8 +23,8 @@ A Next.js 16 App Router app (React 19, Tailwind CSS 4, shadcn, CodeMirror 6). Al
 
 ### Share
 
-1. The browser sends the comparison it already holds to `POST /api/share`.
-2. The server applies the rate limit, checks each schema is 500 KB or smaller, then builds the stored object: `id`, `oldDbml`, `newDbml`, `createdAt`, `parsedResult`, `text`, `migration`, `dbml`.
+1. The browser sends the two schemas of the current comparison, `{ oldDbml, newDbml }`, to `POST /api/share`. It never sends results.
+2. The server applies the rate limit, checks each schema is 500 KB or smaller, rejects empty input, and recomputes the comparison with `compareSchemas()` (`lib/compare.ts`, the same step `/api/diff` uses). It then builds the stored object: `id`, `oldDbml`, `newDbml`, `createdAt`, `parsedResult`, `text`, `migration`, `dbml`. Any other fields in the request are ignored.
 3. The object is JSON-encoded, gzipped and base64-encoded. If the encoded value is over 1 MiB the request fails with 413.
 4. The value is written to Redis as `comparison:<id>` with a 30-day expiry. The id is a 10-character nanoid.
 5. The browser copies `<origin>/c/<id>` to the clipboard.
@@ -39,6 +39,7 @@ A Next.js 16 App Router app (React 19, Tailwind CSS 4, shadcn, CodeMirror 6). Al
 |---|---|
 | `app/page.tsx` | The main page, plus the `Summary` component and its formatting helpers (`formatColumn`, `formatEndpoint`, `formatEnum`). |
 | `app/api/diff/route.ts` | Compare endpoint and the unclosed-block pre-check. |
+| `lib/compare.ts` | `compareSchemas()`: runs dbml-diff and all emitters. Used by `/api/diff` and `/api/share`. |
 | `app/api/share/route.ts` | Share endpoint. |
 | `app/c/[id]/page.tsx` | Shared comparison page. |
 | `app/layout.tsx` | Root layout, metadata, Vercel Analytics and Speed Insights. |
@@ -54,6 +55,5 @@ A Next.js 16 App Router app (React 19, Tailwind CSS 4, shadcn, CodeMirror 6). Al
 
 All open review findings, in priority order, are tracked in [#21](https://github.com/afrugalpenguin/dbml-diff-web/issues/21). The ones that affect the behaviour described above:
 
-- [#9](https://github.com/afrugalpenguin/dbml-diff-web/issues/9) Share stores client-supplied diff output instead of recomputing it.
 - [#14](https://github.com/afrugalpenguin/dbml-diff-web/issues/14) Parser errors are always attributed to Schema B, and the error line is never highlighted.
 - [#18](https://github.com/afrugalpenguin/dbml-diff-web/issues/18) Version badge shows the latest GitHub release, not the installed version.

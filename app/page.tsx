@@ -50,7 +50,7 @@ export default function Page() {
   async function share() {
     if (!comparison) return
     try {
-      const response = await fetch('/api/share', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(comparison) })
+      const response = await fetch('/api/share', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ oldDbml: comparison.oldDbml, newDbml: comparison.newDbml }) })
       const data = await response.json()
       if (!response.ok) throw new Error(data.error)
       await navigator.clipboard.writeText(`${location.origin}/c/${data.id}`)
