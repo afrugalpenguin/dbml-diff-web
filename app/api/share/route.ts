@@ -2,6 +2,7 @@ import { Redis } from '@upstash/redis'
 import { nanoid } from 'nanoid'
 import { encodeComparison, MAX_REDIS_VALUE_BYTES, storedComparisonBytes } from '../../../lib/share-storage'
 import { apiRateLimit, MAX_SCHEMA_BYTES, requestIp, utf8Bytes } from '../../../lib/request-limits'
+import { diff, emitDbml, emitJson, emitMigration, emitText } from 'dbml-diff'
 
 export const runtime = 'nodejs'
 
@@ -16,14 +17,16 @@ export async function POST(request: Request) {
     if (utf8Bytes(oldDbml) > MAX_SCHEMA_BYTES || utf8Bytes(newDbml) > MAX_SCHEMA_BYTES) {
       return Response.json({ error: 'Each schema must be 500 KB or smaller.' }, { status: 413 })
     }
-    if (!body.parsedResult || typeof body.text !== 'string') {
-      return Response.json({ error: 'A completed comparison is required before sharing.' }, { status: 400 })
+    if (!oldDbml.trim() || !newDbml.trim()) {
+      return Response.json({ error: 'Both DBML schemas are required.' }, { status: 400 })
     }
 
+    const result = diff(oldDbml, newDbml)
+    const parsedResult = JSON.parse(emitJson(result))
     const comparison = {
       id: nanoid(10), oldDbml, newDbml,
-      createdAt: new Date().toISOString(), parsedResult: body.parsedResult,
-      text: body.text, migration: body.migration, dbml: body.dbml,
+      createdAt: new Date().toISOString(), parsedResult,
+      text: emitText(result), migration: emitMigration(result), dbml: emitDbml(result),
     }
     const stored = encodeComparison(comparison)
     const storedBytes = storedComparisonBytes(stored)

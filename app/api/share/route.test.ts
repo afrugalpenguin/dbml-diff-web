@@ -1,8 +1,9 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-const { mockLimit, mockSet } = vi.hoisted(() => ({
+const { mockLimit, mockSet, mockEncode } = vi.hoisted(() => ({
   mockLimit: vi.fn().mockResolvedValue({ success: true }),
   mockSet: vi.fn(),
+  mockEncode: vi.fn((comparison) => comparison),
 }))
 
 vi.mock('@upstash/ratelimit', () => ({
@@ -21,10 +22,19 @@ vi.mock('@upstash/redis', () => ({
   },
 }))
 
+vi.mock('dbml-diff', () => ({
+  diff: vi.fn(() => ({ server: 'diff' })),
+  emitJson: vi.fn(() => JSON.stringify({ counts: { added: 1 }, server: true })),
+  emitText: vi.fn(() => 'server text'),
+  emitMigration: vi.fn(() => 'server migration'),
+  emitDbml: vi.fn(() => 'server dbml'),
+}))
+
 vi.mock('../../../lib/share-storage', () => ({
   MAX_REDIS_VALUE_BYTES: 1024 * 1024,
-  encodeComparison: vi.fn(() => ({ encoding: 'gzip+base64', data: 'incompressible-test-data' })),
-  storedComparisonBytes: vi.fn(() => 1024 * 1024 + 1),
+  encodeComparison: mockEncode,
+
+  storedComparisonBytes: vi.fn(() => 100),
 }))
 
 import { POST } from './route'
@@ -34,7 +44,18 @@ describe('POST /api/share', () => {
     vi.clearAllMocks()
   })
 
+  it('stores server-computed output instead of forged client fields', async () => {
+    const response = await POST(new Request('http://localhost/api/share', {
+      method: 'POST', headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ oldDbml: 'Table old {}', newDbml: 'Table new {}', text: 'forged text', migration: 'forged migration', dbml: 'forged dbml', parsedResult: { forged: true } }),
+    }))
+    expect(response.status).toBe(200)
+    expect(mockEncode).toHaveBeenCalledWith(expect.objectContaining({ oldDbml: 'Table old {}', newDbml: 'Table new {}', text: 'server text', migration: 'server migration', dbml: 'server dbml', parsedResult: { counts: { added: 1 }, server: true } }))
+  })
+
   it('returns 413 when the compressed value exceeds the Redis limit', async () => {
+    const { storedComparisonBytes } = await import('../../../lib/share-storage')
+    vi.mocked(storedComparisonBytes).mockReturnValue(1024 * 1024 + 1)
     const response = await POST(new Request('http://localhost/api/share', {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
