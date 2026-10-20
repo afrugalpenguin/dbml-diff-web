@@ -52,7 +52,8 @@ A Next.js 16 App Router app (React 19, Tailwind CSS 4, shadcn, CodeMirror 6). Al
 
 ## Known issues
 
-- [#2](https://github.com/afrugalpenguin/dbml-diff-web/issues/2) Share stores client-supplied diff output instead of recomputing it.
-- [#3](https://github.com/afrugalpenguin/dbml-diff-web/issues/3) Parser errors are always attributed to the updated schema.
-- [#4](https://github.com/afrugalpenguin/dbml-diff-web/issues/4) Editor error-line highlighting is never applied.
-- [#5](https://github.com/afrugalpenguin/dbml-diff-web/issues/5) Version badge shows the latest GitHub release, not the installed version.
+All open review findings, in priority order, are tracked in [#21](https://github.com/afrugalpenguin/dbml-diff-web/issues/21). The ones that affect the behaviour described above:
+
+- [#9](https://github.com/afrugalpenguin/dbml-diff-web/issues/9) Share stores client-supplied diff output instead of recomputing it.
+- [#14](https://github.com/afrugalpenguin/dbml-diff-web/issues/14) Parser errors are always attributed to Schema B, and the error line is never highlighted.
+- [#18](https://github.com/afrugalpenguin/dbml-diff-web/issues/18) Version badge shows the latest GitHub release, not the installed version.
