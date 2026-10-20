@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { ArrowLeftRight, CheckCircle2, Copy, ExternalLink, GitCompareArrows, Link2, Loader2 } from 'lucide-react'
 import { CodeEditor } from '../components/code-editor'
 import { MAX_SCHEMA_BYTES } from '../lib/limits'
+import { shareRequestBody } from '../lib/share-request'
 import type { AddedOrRemovedRef, ColumnChange, ComparisonPayload, DiffResult, EnumEntry, ModifiedEnum, ModifiedGroup, ModifiedTable, GroupEntry, RefEndpoint, RetargetedRef, TableEntry, UnresolvedRef } from '../lib/diff-types'
 
 const initialOld = `TABLE dbo.Shipments {
@@ -50,7 +51,7 @@ export default function Page() {
   async function share() {
     if (!comparison) return
     try {
-      const response = await fetch('/api/share', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ oldDbml, newDbml }) })
+      const response = await fetch('/api/share', { method: 'POST', headers: { 'content-type': 'application/json' }, body: shareRequestBody(comparison) })
       const data = await response.json()
       if (!response.ok) throw new Error(data.error)
       await navigator.clipboard.writeText(`${location.origin}/c/${data.id}`)
