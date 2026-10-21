@@ -1,5 +1,5 @@
 import { nanoid } from 'nanoid'
-import { apiRateLimit, MAX_SCHEMA_BYTES, requestIp, utf8Bytes } from '../../../lib/request-limits'
+import { MAX_SCHEMA_BYTES, rateLimitForRequest, utf8Bytes } from '../../../lib/request-limits'
 import { compareSchemas } from '../../../lib/compare'
 import { parserErrorResponse } from '../../../lib/api-errors'
 import { readJsonRequest } from '../../../lib/bounded-request-body'
@@ -36,7 +36,7 @@ export async function POST(request: Request) {
   let oldDbml = ''
   let newDbml = ''
   try {
-    const limit = await apiRateLimit.limit(`diff:${requestIp(request)}`)
+    const limit = await rateLimitForRequest(request, 'diff')
     if (!limit.success) return Response.json({ error: 'Rate limit exceeded. Please try again in a minute.' }, { status: 429 })
 
     const parsedRequest = await readJsonRequest(request)
@@ -51,11 +51,11 @@ export async function POST(request: Request) {
 
     const unclosedOldLine = findUnclosedBlock(oldDbml)
     if (unclosedOldLine) {
-      return Response.json({ error: `Previous schema has an unclosed block starting on line ${unclosedOldLine}. Add a closing }.`, diagnostic: { schema: 'old', line: unclosedOldLine } }, { status: 400 })
+      return Response.json({ error: `Schema A has an unclosed block starting on line ${unclosedOldLine}. Add a closing }.`, diagnostic: { schema: 'old', line: unclosedOldLine } }, { status: 400 })
     }
     const unclosedNewLine = findUnclosedBlock(newDbml)
     if (unclosedNewLine) {
-      return Response.json({ error: `Updated schema has an unclosed block starting on line ${unclosedNewLine}. Add a closing }.`, diagnostic: { schema: 'new', line: unclosedNewLine } }, { status: 400 })
+      return Response.json({ error: `Schema B has an unclosed block starting on line ${unclosedNewLine}. Add a closing }.`, diagnostic: { schema: 'new', line: unclosedNewLine } }, { status: 400 })
     }
 
     const output = compareSchemas(oldDbml, newDbml)
