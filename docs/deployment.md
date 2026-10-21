@@ -9,6 +9,7 @@ The app is deployed on Vercel.
 - Route handlers and `/c/[id]` run on the Node.js runtime (`export const runtime = 'nodejs'`), because sharing uses `node:zlib`.
 - Redis is provided by Upstash. Set the environment variables in each Vercel environment as described in [Development](development.md#environment-variables).
 - Vercel Analytics and Speed Insights are included in the root layout and load in production builds only. Enable them in the Vercel project to collect data.
+- Security headers (`Content-Security-Policy`, `X-Frame-Options: DENY`, `X-Content-Type-Options`, `Referrer-Policy`, `Permissions-Policy`) are set for every route in `next.config.mjs`. The app does not set `Strict-Transport-Security`, because Vercel already sends it.
 
 ## Custom domain
 
