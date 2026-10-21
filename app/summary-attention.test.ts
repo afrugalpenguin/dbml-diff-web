@@ -35,6 +35,12 @@ describe('Summary needs attention', () => {
     expect(text).toContain('users.c changes type from int to bigint in B')
   })
 
+  it('does not flag a type that only changes case, as dbml-diff does not', () => {
+    const text = summaryFor('Table users {\n  id int\n  a int\n}', 'Table users {\n  id int\n  a INT [not null]\n}')
+    expect(text).toContain('users.a is now NOT NULL')
+    expect(text).not.toContain('changes type')
+  })
+
   it('shows a generic item when the before lookup is missing', () => {
     const parsed = compareSchemas('Table users {\n  id int\n}', 'Table users {\n  id bigint\n}').parsedResult
     delete parsed.tables.modified[0].columnsChanged[0].before

@@ -18,7 +18,7 @@ A Next.js 16 App Router app (React 19, Tailwind CSS 4, shadcn, CodeMirror 6). Al
 1. The browser checks each schema is 500 KB or smaller, then sends `{ oldDbml, newDbml }` to `POST /api/diff`.
 2. The server applies the rate limit, reads the body (at most 2 MiB), checks the size of each schema again, rejects empty input, and pre-checks each schema for an unclosed `{` block so it can report the line.
 3. `compareSchemas()` (`lib/compare.ts`) calls `diff()` from dbml-diff and the emitters `emitJson`, `emitText`, `emitMigration` and `emitDbml`.
-4. When columns changed, it also runs `diff(oldDbml, '')`, which lists every Schema A table with its columns, and attaches each changed column's Schema A values as `before`. The Summary's "Needs attention" items use these structured values, never the human-readable `changes` text.
+4. Each changed column in the result carries `before`, its Schema A values, from dbml-diff (1.3.0 and later). The Summary's "Needs attention" items use these structured values, never the human-readable `changes` text.
 5. If the parser fails, `compareSchemas()` runs `diff(oldDbml, '')` to tell which schema failed. The 400 response names Schema A or Schema B and, for syntax errors, the line and column, which the matching editor highlights.
 6. The response contains both schemas, every output format, the parsed JSON result (`parsedResult`), counts, a timestamp and a random id. Nothing is written to storage.
 7. The browser keeps the response in memory and renders it.
@@ -44,7 +44,7 @@ The Share button is temporarily hidden, so the browser does not currently call t
 | `app/page.tsx` | The main page, plus the `Summary` component and `formatEnum`. |
 | `lib/summary-changes.ts` | Summary logic built from structured change records: "Needs attention" items, table detail rows, change kinds with their symbols and colours, and the stable target ids (table, column, change kind) that jump-to highlighting compares. |
 | `app/api/diff/route.ts` | Compare endpoint and the unclosed-block pre-check. |
-| `lib/compare.ts` | `compareSchemas()`: runs dbml-diff and all emitters, adds `before` values for changed columns, and attributes parser errors to a schema. Used by `/api/diff` and `/api/share`. |
+| `lib/compare.ts` | `compareSchemas()`: runs dbml-diff and all emitters, and attributes parser errors to a schema. Used by `/api/diff` and `/api/share`. |
 | `lib/api-errors.ts` | `parserErrorResponse()`: turns a parser diagnostic into a 400 response. |
 | `lib/bounded-request-body.ts` | Reads a JSON request body with a 2 MiB cap. |
 | `lib/share-request.ts` | `shareRequestBody()`: the body the browser sends to `/api/share` (the compared schemas only). Unused while the Share button is hidden. |
@@ -57,7 +57,6 @@ The Share button is temporarily hidden, so the browser does not currently call t
 | `lib/limits.ts` | `MAX_SCHEMA_BYTES` (shared by browser and server). |
 | `lib/request-limits.ts` | Rate limiters (per validated client IP, and a stricter shared bucket without one), UTF-8 byte counting. |
 | `lib/share-storage.ts` | gzip + base64 encode/decode and `MAX_REDIS_VALUE_BYTES`. |
-| `types/dbml-diff.d.ts` | Type declarations for dbml-diff, which does not ship its own. |
 | `next.config.mjs` | Security headers, and the installed dbml-diff version for the header badge. |
 | `eslint.config.mjs` | ESLint config (`eslint-config-next`). |
 | `test/fixtures/*.dbml` | Test fixtures. |

@@ -3,6 +3,7 @@ pmOnFail: ignore
 minimumReleaseAgeExclude:
   - '@next/*'
   - next
+  - dbml-diff@1.3.0
 
 allowBuilds:
   unrs-resolver: false

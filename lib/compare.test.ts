@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { readFileSync } from 'node:fs'
 import { diff, emitJson } from 'dbml-diff'
 import { compareSchemas } from './compare'
@@ -12,14 +12,25 @@ const cases: Array<[string, string, string]> = [
   ['became PK', 'Table users {\n  id int\n}', 'Table users {\n  id int [pk]\n}'],
 ]
 
+vi.mock('dbml-diff', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('dbml-diff')>()
+  return { ...actual, diff: vi.fn(actual.diff) }
+})
+
 describe('compareSchemas', () => {
+  it('takes before values from the package without a second diff', () => {
+    vi.mocked(diff).mockClear()
+    compareSchemas('Table users { id int }', 'Table users { id bigint }')
+    expect(diff).toHaveBeenCalledTimes(1)
+  })
+
   it('adds structured before values for changed columns', () => {
     const change = compareSchemas('Table users { id int }', 'Table users { id bigint }').parsedResult.tables.modified[0]?.columnsChanged[0]
     expect(change?.before).toEqual(expect.objectContaining({ name: 'id', type: 'int' }))
     expect(change?.column).toEqual(expect.objectContaining({ name: 'id', type: 'bigint' }))
   })
 
-  it.each(cases)('looks up the same before column as a reversed diff: %s', (_, oldDbml, newDbml) => {
+  it.each(cases)('has the same before column as a reversed diff: %s', (_, oldDbml, newDbml) => {
     const forward = compareSchemas(oldDbml, newDbml).parsedResult
     const reversed = JSON.parse(emitJson(diff(newDbml, oldDbml))) as DiffResult
     const changed = forward.tables.modified.flatMap((table) => table.columnsChanged.map((change) => ({ table: table.name, change })))
