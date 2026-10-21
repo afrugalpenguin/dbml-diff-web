@@ -5,7 +5,7 @@ import { compareSchemas } from './compare'
 import type { DiffResult } from './diff-types'
 
 const cases: Array<[string, string, string]> = [
-  ['fixtures', readFileSync('v1.dbml', 'utf8'), readFileSync('v2.dbml', 'utf8')],
+  ['fixtures', readFileSync('test/fixtures/v1.dbml', 'utf8'), readFileSync('test/fixtures/v2.dbml', 'utf8')],
   ['type and nullability', 'Table users {\n  id int\n  a int [not null]\n  b int\n  c int\n}', 'Table users {\n  id int\n  a int\n  b int [not null]\n  c bigint [not null]\n}'],
   ['default schema normalised', 'Table users {\n  id int\n}', 'Table public.users {\n  id bigint\n}'],
   ['quoted names', 'Table "Order Items" {\n  "Unit Price" int\n}', 'Table "Order Items" {\n  "Unit Price" decimal\n}'],

@@ -50,7 +50,7 @@ A Next.js 16 App Router app (React 19, Tailwind CSS 4, shadcn, CodeMirror 6). Al
 | `lib/request-limits.ts` | Rate limiter, client IP lookup, UTF-8 byte counting. |
 | `lib/share-storage.ts` | gzip + base64 encode/decode and `MAX_REDIS_VALUE_BYTES`. |
 | `types/dbml-diff.d.ts` | Type declarations for dbml-diff, which does not ship its own. |
-| `*.dbml` (repo root) | Test fixtures. |
+| `test/fixtures/*.dbml` | Test fixtures. |
 
 ## Known issues
 

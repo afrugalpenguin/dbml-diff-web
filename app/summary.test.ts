@@ -6,14 +6,14 @@ import { readFileSync } from 'node:fs'
 import { Summary } from './page'
 import type { DiffResult } from '../lib/diff-types'
 
-const oldDbml = readFileSync('v1.dbml', 'utf8')
-const newDbml = readFileSync('v2.dbml', 'utf8')
-const enumRefOld = readFileSync('enum-ref-v1.dbml', 'utf8')
-const enumRefNew = readFileSync('enum-ref-v2.dbml', 'utf8')
-const refAddRemoveOld = readFileSync('ref-add-remove-v1.dbml', 'utf8')
-const refAddRemoveNew = readFileSync('ref-add-remove-v2.dbml', 'utf8')
-const groupOld = readFileSync('group-v1.dbml', 'utf8')
-const groupNew = readFileSync('group-v2.dbml', 'utf8')
+const oldDbml = readFileSync('test/fixtures/v1.dbml', 'utf8')
+const newDbml = readFileSync('test/fixtures/v2.dbml', 'utf8')
+const enumRefOld = readFileSync('test/fixtures/enum-ref-v1.dbml', 'utf8')
+const enumRefNew = readFileSync('test/fixtures/enum-ref-v2.dbml', 'utf8')
+const refAddRemoveOld = readFileSync('test/fixtures/ref-add-remove-v1.dbml', 'utf8')
+const refAddRemoveNew = readFileSync('test/fixtures/ref-add-remove-v2.dbml', 'utf8')
+const groupOld = readFileSync('test/fixtures/group-v1.dbml', 'utf8')
+const groupNew = readFileSync('test/fixtures/group-v2.dbml', 'utf8')
 
 function summaryText(parsed: DiffResult) {
   return renderToStaticMarkup(createElement(Summary, { parsed, counts: parsed.counts })).replace(/<[^>]+>/g, '')

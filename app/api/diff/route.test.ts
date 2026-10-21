@@ -15,8 +15,8 @@ function requestWithBody(body: BodyInit | null, contentType = 'application/json'
   return new Request('http://localhost/api/diff', { method: 'POST', headers: { 'content-type': contentType }, body })
 }
 
-const oldDbml = readFileSync('v1.dbml', 'utf8')
-const newDbml = readFileSync('v2.dbml', 'utf8')
+const oldDbml = readFileSync('test/fixtures/v1.dbml', 'utf8')
+const newDbml = readFileSync('test/fixtures/v2.dbml', 'utf8')
 const closedDbml = ['Table a {', '  id int', '}'].join('\n')
 const unclosedDbml = ['Table a {', '  id int', '', 'Table b {', '  id int', '}'].join('\n')
 

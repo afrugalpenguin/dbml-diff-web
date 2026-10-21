@@ -33,8 +33,8 @@ vi.mock('../../../lib/share-storage', () => ({
 
 import { POST } from './route'
 
-const oldDbml = readFileSync('ref-add-remove-v1.dbml', 'utf8')
-const newDbml = readFileSync('ref-add-remove-v2.dbml', 'utf8')
+const oldDbml = readFileSync('test/fixtures/ref-add-remove-v1.dbml', 'utf8')
+const newDbml = readFileSync('test/fixtures/ref-add-remove-v2.dbml', 'utf8')
 
 function share(body: unknown) {
   return POST(new Request('http://localhost/api/share', {
