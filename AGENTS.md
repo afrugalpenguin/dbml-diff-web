@@ -29,6 +29,18 @@ All diffing is done by the package. Never reimplement diff logic in the app.
 - Fixtures live in test/fixtures/, not the repo root.
 - Run `pnpm test` and `pnpm build`, and say what you ran and the result.
 
+## Branches, commits and pull requests
+- Every change has a GitHub issue. If none exists, create it first.
+- Branch from `main` with a `feature/`, `fix/` or `chore/` prefix matching the change type, then a short description (for example `fix/api-error-responses`).
+- Commits use `type(scope): description`. The scope is required. Types: feat, fix, docs, refactor, test, chore, build, ci, perf, style. Subject line 72 characters or less.
+- The PR title uses the same format as a commit subject.
+- The PR body includes:
+  - `Closes #N` for the issue it resolves.
+  - For a bug, the cause in a few lines.
+  - What changed.
+  - Tests: what was added, confirmation the new tests failed before the fix, and the commands run with their results.
+- Keep a PR to its issue. Report anything else you find instead of fixing it in the same PR.
+- Do not merge pull requests. The maintainer reviews and merges.
+
 ## Style
-- Conventional commits: type(scope): description, subject 72 chars or less.
 - Terminology: "Schema A" and "Schema B", "added in B", "removed in B", "SQL to turn A into B".
