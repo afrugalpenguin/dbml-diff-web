@@ -47,8 +47,24 @@ describe('/api/diff comparison contract', () => {
     expect(await response.json()).toEqual({ error: 'Invalid JSON request.' })
   })
 
+  it('attributes Schema A parser errors to old', async () => {
+    const response = await postDiff(requestWithBody(JSON.stringify({ oldDbml: 'Table t {\n  id int [pk\n}', newDbml: 'Table t { id int }' })))
+    const payload = await response.json()
+    expect(response.status).toBe(400)
+    expect(payload.diagnostic).toEqual({ schema: 'old', line: 3, column: 1 })
+    expect(payload.error).toMatch(/^Schema A: /)
+  })
+
+  it('attributes Schema B parser errors to new', async () => {
+    const response = await postDiff(requestWithBody(JSON.stringify({ oldDbml: 'Table t { id int }', newDbml: 'Table t {\n  id int [pk\n}' })))
+    const payload = await response.json()
+    expect(response.status).toBe(400)
+    expect(payload.diagnostic).toEqual({ schema: 'new', line: 3, column: 1 })
+    expect(payload.error).toMatch(/^Schema B: /)
+  })
+
   it('returns parser diagnostics without exposing internal errors', async () => {
-    const response = await postDiff(requestWithBody(JSON.stringify({ oldDbml: 'Table old {}', newDbml: 'Table broken { }' })))
+    const response = await postDiff(requestWithBody(JSON.stringify({ oldDbml: 'Table old { id int }', newDbml: 'Table broken { }' })))
     const payload = await response.json()
     expect(response.status).toBe(400)
     expect(payload.error).toEqual(expect.any(String))
