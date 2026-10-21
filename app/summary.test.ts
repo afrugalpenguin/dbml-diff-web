@@ -48,6 +48,16 @@ describe('Summary', () => {
     expect(text).toContain('Orders~user_id\u2192Accounts.id (was Users.id)')
   })
 
+  it('colours change card markers by change kind', () => {
+    const parsed = JSON.parse(emitJson(diff(enumRefOld, enumRefNew)))
+    const markup = renderToStaticMarkup(createElement(Summary, { parsed, counts: parsed.counts }))
+    expect(markup).toContain('<span class="text-amber-500">~</span> modified dbo.Status')
+    const added: DiffResult = { ...parsed, enums: { added: [{ name: 'dbo.Kind', values: ['a'] }], removed: [{ name: 'dbo.Old', values: ['b'] }], modified: [] } }
+    const addedMarkup = renderToStaticMarkup(createElement(Summary, { parsed: added, counts: added.counts }))
+    expect(addedMarkup).toContain('<span class="text-emerald-500">+</span> added dbo.Kind')
+    expect(addedMarkup).toContain('<span class="text-red-500">-</span> removed dbo.Old')
+  })
+
   it('renders group membership changes', () => {
     const parsed = JSON.parse(emitJson(diff(groupOld, groupNew)))
     const text = summaryText(parsed)

@@ -40,10 +40,10 @@ Vitest, run from the repo root. Tests read fixtures from `test/fixtures/`.
 | `app/api/diff/route.test.ts` | `/api/diff` handler: success, 400, 413, 429, unclosed blocks, parser diagnostics and generic errors. The rate limiter is mocked. |
 | `app/api/share/route.test.ts` | `/api/share` handler: validation, limits, rate limiting, storage and server-computed output. Redis and the rate limiter are mocked. |
 | `app/c/[id]/page.test.tsx` | The shared comparison page: id validation, missing, corrupt and valid shares. Redis is mocked. |
-| `app/summary.test.ts` | `Summary` rendering for the fixture schemas: tables, enums, refs and groups. |
+| `app/summary.test.ts` | `Summary` rendering for the fixture schemas: tables, enums, refs and groups, and change card colours by change kind. |
 | `app/summary-attention.test.ts` | "Needs attention" items built from structured column changes. |
 | `components/code-editor.test.ts` | The editor error-line decoration. |
-| `lib/*.test.ts` | Request body limits, rate limit buckets, share validation and request body, and the structured before values in `compareSchemas()`. |
+| `lib/*.test.ts` | Request body limits, rate limit buckets, share validation and request body, the structured before values in `compareSchemas()`, and the Summary's change targets (each attention item highlights exactly one row). |
 | `next.config.test.ts` | Security headers and build type checking. |
 
 ## Type checking

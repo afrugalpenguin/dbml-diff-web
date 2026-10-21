@@ -41,7 +41,8 @@ The Share button is temporarily hidden, so the browser does not currently call t
 
 | Path | Contents |
 |---|---|
-| `app/page.tsx` | The main page, plus the `Summary` component and its formatting helpers (`formatColumn`, `formatEnum`). |
+| `app/page.tsx` | The main page, plus the `Summary` component and `formatEnum`. |
+| `lib/summary-changes.ts` | Summary logic built from structured change records: "Needs attention" items, table detail rows, change kinds with their symbols and colours, and the stable target ids (table, column, change kind) that jump-to highlighting compares. |
 | `app/api/diff/route.ts` | Compare endpoint and the unclosed-block pre-check. |
 | `lib/compare.ts` | `compareSchemas()`: runs dbml-diff and all emitters, adds `before` values for changed columns, and attributes parser errors to a schema. Used by `/api/diff` and `/api/share`. |
 | `lib/api-errors.ts` | `parserErrorResponse()`: turns a parser diagnostic into a 400 response. |
