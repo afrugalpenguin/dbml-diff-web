@@ -51,11 +51,11 @@ export async function POST(request: Request) {
 
     const unclosedOldLine = findUnclosedBlock(oldDbml)
     if (unclosedOldLine) {
-      return Response.json({ error: `Previous schema has an unclosed block starting on line ${unclosedOldLine}. Add a closing }.`, diagnostic: { schema: 'old', line: unclosedOldLine } }, { status: 400 })
+      return Response.json({ error: `Schema A has an unclosed block starting on line ${unclosedOldLine}. Add a closing }.`, diagnostic: { schema: 'old', line: unclosedOldLine } }, { status: 400 })
     }
     const unclosedNewLine = findUnclosedBlock(newDbml)
     if (unclosedNewLine) {
-      return Response.json({ error: `Updated schema has an unclosed block starting on line ${unclosedNewLine}. Add a closing }.`, diagnostic: { schema: 'new', line: unclosedNewLine } }, { status: 400 })
+      return Response.json({ error: `Schema B has an unclosed block starting on line ${unclosedNewLine}. Add a closing }.`, diagnostic: { schema: 'new', line: unclosedNewLine } }, { status: 400 })
     }
 
     const output = compareSchemas(oldDbml, newDbml)
