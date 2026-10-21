@@ -28,11 +28,15 @@ No Vercel access? Run `cp .env.example .env.local` and fill in your own Upstash 
 - `pnpm dev`: start the dev server on port 3000.
 - `pnpm build`: create a production build.
 - `pnpm test`: run the Vitest suite once.
+- `pnpm lint`: run ESLint.
+- `pnpm typecheck`: run the TypeScript compiler without emitting files.
+
+CI runs lint, typecheck, tests and the production build on every pull request.
 
 ## Privacy
 
-Comparisons are processed on the server and not stored unless you share them.
-Shared comparisons expire after 30 days.
+Comparisons are processed on the server and not stored unless they are shared.
+Shared comparisons expire after 30 days. The Share button is temporarily hidden; existing share links still work.
 
 ## Docs
 

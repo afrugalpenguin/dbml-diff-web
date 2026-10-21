@@ -8,7 +8,7 @@
 | `KV_REST_API_TOKEN` | Yes | Rate limiter, `/api/share` (writes), `/c/[id]` fallback |
 | `KV_REST_API_READ_ONLY_TOKEN` | No | `/c/[id]` reads. Falls back to `KV_REST_API_TOKEN`. |
 
-These are the names the Upstash Redis integration on Vercel sets. Redis is needed even for plain comparisons, because `/api/diff` is rate limited. Without it, Compare fails with a 400 error.
+These are the names the Upstash Redis integration on Vercel sets. Redis is needed even for plain comparisons, because `/api/diff` is rate limited. Without it, Compare fails with a 500 `Unable to compare DBML schemas.`
 
 Set them in each Vercel environment, each pointing at its own Upstash database:
 
@@ -56,6 +56,10 @@ pnpm typecheck
 ```
 
 ESLint is configured in `eslint.config.mjs` and runs through `pnpm lint`.
+
+## CI
+
+`.github/workflows/ci.yml` runs on every pull request: `pnpm install --frozen-lockfile`, then `pnpm lint`, `pnpm typecheck`, `pnpm test` and `pnpm build`. The `test` job is a required check on `main`, and branches must be up to date with `main` before merging.
 
 ## Preview deployments
 
