@@ -2,7 +2,7 @@ import { Redis } from '@upstash/redis'
 import { nanoid } from 'nanoid'
 import { compareSchemas } from '../../../lib/compare'
 import { encodeComparison, MAX_REDIS_VALUE_BYTES, storedComparisonBytes } from '../../../lib/share-storage'
-import { apiRateLimit, MAX_SCHEMA_BYTES, requestIp, utf8Bytes } from '../../../lib/request-limits'
+import { MAX_SCHEMA_BYTES, rateLimitForRequest, utf8Bytes } from '../../../lib/request-limits'
 import { parserErrorResponse } from '../../../lib/api-errors'
 import { readJsonRequest } from '../../../lib/bounded-request-body'
 
@@ -10,7 +10,7 @@ export const runtime = 'nodejs'
 
 export async function POST(request: Request) {
   try {
-    const limit = await apiRateLimit.limit(`share:${requestIp(request)}`)
+    const limit = await rateLimitForRequest(request, 'share')
     if (!limit.success) return Response.json({ error: 'Rate limit exceeded. Please try again in a minute.' }, { status: 429 })
 
     const parsedRequest = await readJsonRequest(request)
