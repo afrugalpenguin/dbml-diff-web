@@ -10,7 +10,8 @@ import * as compareModule from '../../../lib/compare'
 vi.mock('../../../lib/request-limits', () => ({
   MAX_SCHEMA_BYTES: 500 * 1024,
   apiRateLimit: { limit: vi.fn().mockResolvedValue({ success: true }) },
-  requestIp: vi.fn(() => 'test'),
+  missingIpRateLimit: { limit: vi.fn().mockResolvedValue({ success: true }) },
+  rateLimitForRequest: vi.fn().mockResolvedValue({ success: true }),
   utf8Bytes: (value: string) => new TextEncoder().encode(value).byteLength,
 }))
 
@@ -73,7 +74,7 @@ describe('/api/diff comparison contract', () => {
 
   it('hides rate limiter errors from clients', async () => {
     const requestLimits = await import('../../../lib/request-limits')
-    vi.mocked(requestLimits.apiRateLimit.limit).mockRejectedValueOnce(new Error('redis connection details'))
+    vi.mocked(requestLimits.rateLimitForRequest).mockRejectedValueOnce(new Error('redis connection details'))
     const response = await postDiff(requestWithBody(JSON.stringify({ oldDbml: 'Table old {}', newDbml: 'Table new {}' })))
     expect(response.status).toBe(500)
     expect(await response.json()).toEqual({ error: 'Unable to compare DBML schemas.' })
