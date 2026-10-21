@@ -34,4 +34,4 @@ The server caps each JSON request body at 2 MiB before parsing. This bounds memo
 ## Third parties
 
 - Vercel Analytics and Vercel Speed Insights run in production builds only (page views and web vitals, no editor content).
-- The page fetches the latest dbml-diff release tag from the GitHub API in the browser to show the version badge (see [#18](https://github.com/afrugalpenguin/dbml-diff-web/issues/18)).
+ - The version badge is read from the installed `dbml-diff` package version at build time.
