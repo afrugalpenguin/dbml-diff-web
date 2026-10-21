@@ -1,10 +1,20 @@
 import { describe, expect, it } from 'vitest'
 import { createElement } from 'react'
 import { renderToStaticMarkup } from 'react-dom/server'
-import { readFileSync } from 'node:fs'
-import { Summary } from './page'
+import { readdirSync, readFileSync } from 'node:fs'
+import { Summary } from '../components/summary/summary'
 import { compareSchemas } from '../lib/compare'
 import type { DiffResult } from '../lib/diff-types'
+
+// The Summary's source, now split between its components and lib/.
+function summarySource() {
+  const files = [
+    ...readdirSync('components/summary').map((file) => `components/summary/${file}`),
+    'lib/summary-changes.ts',
+    'lib/summary-groups.ts',
+  ]
+  return files.map((file) => readFileSync(file, 'utf8')).join('\n')
+}
 
 function attentionText(parsed: DiffResult) {
   const markup = renderToStaticMarkup(createElement(Summary, { parsed, counts: parsed.counts }))
@@ -50,12 +60,12 @@ describe('Summary needs attention', () => {
   })
 
   it('does not read the change phrases', () => {
-    const source = readFileSync('app/page.tsx', 'utf8')
+    const source = summarySource()
     expect(source).not.toMatch(/changes\.some\(/)
   })
 
   it('does not read rendered text to pick a colour or a highlight', () => {
-    const source = readFileSync('app/page.tsx', 'utf8')
+    const source = summarySource()
     expect(source).not.toMatch(/trimStart\(\)\[0\]/)
     expect(source).not.toMatch(/line\?\.includes\(/)
   })
