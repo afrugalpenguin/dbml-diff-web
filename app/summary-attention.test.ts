@@ -47,4 +47,10 @@ describe('Summary needs attention', () => {
     const source = readFileSync('app/page.tsx', 'utf8')
     expect(source).not.toMatch(/changes\.some\(/)
   })
+
+  it('does not read rendered text to pick a colour or a highlight', () => {
+    const source = readFileSync('app/page.tsx', 'utf8')
+    expect(source).not.toMatch(/trimStart\(\)\[0\]/)
+    expect(source).not.toMatch(/line\?\.includes\(/)
+  })
 })
