@@ -3,15 +3,18 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 const mockIpAddress = vi.fn()
 const identifiedLimit = vi.fn().mockResolvedValue({ success: true })
 const missingLimit = vi.fn().mockResolvedValue({ success: true })
+const limiterInstances: Array<{ limit: ReturnType<typeof vi.fn>; options: { prefix?: string; limiter?: unknown } }> = []
 
 vi.mock('@vercel/functions', () => ({ ipAddress: mockIpAddress }))
 vi.mock('@upstash/redis', () => ({ Redis: vi.fn() }))
 vi.mock('@upstash/ratelimit', () => ({
   Ratelimit: class {
-    static slidingWindow() { return {} }
-    limit(key: string) {
-      return key.includes(':missing') ? missingLimit(key) : identifiedLimit(key)
+    limit: ReturnType<typeof vi.fn>
+    constructor(options: { prefix?: string; limiter?: unknown }) {
+      this.limit = options.prefix === 'dbml-diff:rate:missing-ip' ? missingLimit : identifiedLimit
+      limiterInstances.push({ limit: this.limit, options })
     }
+    static slidingWindow(requests: number, window: string) { return { requests, window } }
   },
 }))
 
@@ -41,5 +44,7 @@ describe('request IP rate-limit buckets', () => {
     expect(missingLimit).toHaveBeenNthCalledWith(1, 'diff:missing')
     expect(missingLimit).toHaveBeenNthCalledWith(2, 'diff:missing')
     expect(identifiedLimit).not.toHaveBeenCalled()
+    const missing = limiterInstances.find(({ options }) => options.prefix === 'dbml-diff:rate:missing-ip')
+    expect(missing?.options.limiter).toEqual({ requests: 10, window: '1 m' })
   })
 })
