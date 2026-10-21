@@ -41,7 +41,12 @@ The Share button is temporarily hidden, so the browser does not currently call t
 
 | Path | Contents |
 |---|---|
-| `app/page.tsx` | The main page, plus the `Summary` component and `formatEnum`. |
+| `app/page.tsx` | The main page: editor and comparison state, and the compare request. |
+| `components/site-header.tsx`, `components/site-footer.tsx` | Page header (with the dbml-diff version badge) and footer. |
+| `components/compare-status.tsx` | The "Comparison complete" status and the error with its schema, line and column. |
+| `components/comparison-result.tsx` | The result panel and its tabs (Summary, Text, Migration, DBML). |
+| `components/summary/` | The `Summary` component and its sections: toolbar, Needs attention, tables, groups, enums, refs and legend. |
+| `lib/summary-groups.ts` | Summary grouping and display helpers: table change entries, grouping by schema, group moves, enum and ref rows, shared schema prefix. |
 | `lib/summary-changes.ts` | Summary logic built from structured change records: "Needs attention" items, table detail rows, change kinds with their symbols and colours, and the stable target ids (table, column, change kind) that jump-to highlighting compares. |
 | `app/api/diff/route.ts` | Compare endpoint and the unclosed-block pre-check. |
 | `lib/compare.ts` | `compareSchemas()`: runs dbml-diff and all emitters, and attributes parser errors to a schema. Used by `/api/diff` and `/api/share`. |
@@ -63,7 +68,4 @@ The Share button is temporarily hidden, so the browser does not currently call t
 
 ## Known issues
 
-All open review findings, in priority order, are tracked in [#21](https://github.com/afrugalpenguin/dbml-diff-web/issues/21). The ones that affect the behaviour described above:
-
-- [#20](https://github.com/afrugalpenguin/dbml-diff-web/issues/20) `app/page.tsx` still holds the page, the `Summary` component and its helpers in one file.
-- [#38](https://github.com/afrugalpenguin/dbml-diff-web/issues/38) A parser stack overflow on very large input returns the raw runtime message (fix in [#49](https://github.com/afrugalpenguin/dbml-diff-web/pull/49)).
+All open review findings, in priority order, are tracked in [#21](https://github.com/afrugalpenguin/dbml-diff-web/issues/21). None of them currently affect the behaviour described above.
