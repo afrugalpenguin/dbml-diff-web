@@ -47,7 +47,7 @@ describe('/api/diff comparison contract', () => {
   })
 
   it('returns parser diagnostics without exposing internal errors', async () => {
-    const response = await postDiff(requestWithBody(JSON.stringify({ oldDbml: 'Table old {}', newDbml: 'Table broken { }' })))
+    const response = await postDiff(requestWithBody(JSON.stringify({ oldDbml: 'Table old { id int }', newDbml: 'Table broken { }' })))
     const payload = await response.json()
     expect(response.status).toBe(400)
     expect(payload.error).toEqual(expect.any(String))
