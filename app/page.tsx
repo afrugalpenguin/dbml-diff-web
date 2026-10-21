@@ -101,10 +101,10 @@ export function Summary({ parsed, counts, onAttention = () => {} }: { parsed: Di
       ...table.columnsAdded.filter((column) => column.notNull).map((column) => ({ id: `table-${table.name}`, schema: 'new' as const, text: `${table.name}.${column.name} added in B as NOT NULL. This fails on existing rows without a default.`, line: `+ column ${formatColumn(column)}` })),
       ...table.columnsChanged.flatMap(({ column, before }) => {
         const items = []
-        if (!before || (before.type === column.type && before.notNull === column.notNull && before.pk === column.pk)) items.push({ id: `table-${table.name}:column-${column.name}:changed`, schema: 'new' as const, text: `${table.name}.${column.name} changed in B. Review this column before migrating.`, line: `~ ${formatColumn(column)}` })
+        if (!before || (before.type === column.type && before.notNull === column.notNull && before.pk === column.pk)) items.push({ id: `table-${table.name}`, key: `table-${table.name}:column-${column.name}:changed`, schema: 'new' as const, text: `${table.name}.${column.name} changed in B. Review this column before migrating.`, line: `~ ${formatColumn(column)}` })
         else {
-          if (before.notNull !== column.notNull && column.notNull) items.push({ id: `table-${table.name}:column-${column.name}:not-null`, schema: 'new' as const, text: `${table.name}.${column.name} is now NOT NULL. This fails if existing rows contain nulls; add a default or backfill first.`, line: `~ ${formatColumn(column)}` })
-          if (before.type !== column.type) items.push({ id: `table-${table.name}:column-${column.name}:type`, schema: 'new' as const, text: `${table.name}.${column.name} changes type from ${before.type ?? 'unknown'} to ${column.type ?? 'unknown'} in B. Existing values must convert; check for data loss.`, line: `~ ${formatColumn(column)}` })
+          if (before.notNull !== column.notNull && column.notNull) items.push({ id: `table-${table.name}`, key: `table-${table.name}:column-${column.name}:not-null`, schema: 'new' as const, text: `${table.name}.${column.name} is now NOT NULL. This fails if existing rows contain nulls; add a default or backfill first.`, line: `~ ${formatColumn(column)}` })
+          if (before.type !== column.type) items.push({ id: `table-${table.name}`, key: `table-${table.name}:column-${column.name}:type`, schema: 'new' as const, text: `${table.name}.${column.name} changes type from ${before.type ?? 'unknown'} to ${column.type ?? 'unknown'} in B. Existing values must convert; check for data loss.`, line: `~ ${formatColumn(column)}` })
         }
         return items
       }),
