@@ -18,14 +18,14 @@ function requestWithBody(body: BodyInit | null, contentType = 'application/json'
   return new Request('http://localhost/api/diff', { method: 'POST', headers: { 'content-type': contentType }, body })
 }
 
-const oldDbml = readFileSync('v1.dbml', 'utf8')
-const newDbml = readFileSync('v2.dbml', 'utf8')
-const enumRefOld = readFileSync('enum-ref-v1.dbml', 'utf8')
-const enumRefNew = readFileSync('enum-ref-v2.dbml', 'utf8')
-const refAddRemoveOld = readFileSync('ref-add-remove-v1.dbml', 'utf8')
-const refAddRemoveNew = readFileSync('ref-add-remove-v2.dbml', 'utf8')
-const groupOld = readFileSync('group-v1.dbml', 'utf8')
-const groupNew = readFileSync('group-v2.dbml', 'utf8')
+const oldDbml = readFileSync('test/fixtures/v1.dbml', 'utf8')
+const newDbml = readFileSync('test/fixtures/v2.dbml', 'utf8')
+const enumRefOld = readFileSync('test/fixtures/enum-ref-v1.dbml', 'utf8')
+const enumRefNew = readFileSync('test/fixtures/enum-ref-v2.dbml', 'utf8')
+const refAddRemoveOld = readFileSync('test/fixtures/ref-add-remove-v1.dbml', 'utf8')
+const refAddRemoveNew = readFileSync('test/fixtures/ref-add-remove-v2.dbml', 'utf8')
+const groupOld = readFileSync('test/fixtures/group-v1.dbml', 'utf8')
+const groupNew = readFileSync('test/fixtures/group-v2.dbml', 'utf8')
 
 describe('/api/diff comparison contract', () => {
   it('returns 413 before reading an oversized declared body', async () => {
