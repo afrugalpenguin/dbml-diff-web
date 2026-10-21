@@ -49,6 +49,13 @@ describe('POST /api/share', () => {
     vi.clearAllMocks()
   })
 
+  it('returns 413 before reading an oversized declared body', async () => {
+    const response = await POST(new Request('http://localhost/api/share', { method: 'POST', headers: { 'content-type': 'application/json', 'content-length': String(2 * 1024 * 1024 + 1) }, body: '{}' }))
+    expect(response.status).toBe(413)
+    expect(await response.json()).toEqual({ error: 'Request is too large.' })
+    expect(mockSet).not.toHaveBeenCalled()
+  })
+
   it('returns 400 for a null JSON body', async () => {
     const response = await POST(new Request('http://localhost/api/share', { method: 'POST', headers: { 'content-type': 'application/json' }, body: 'null' }))
     expect(response.status).toBe(400)

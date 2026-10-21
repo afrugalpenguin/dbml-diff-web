@@ -2,7 +2,7 @@ import { nanoid } from 'nanoid'
 import { apiRateLimit, MAX_SCHEMA_BYTES, requestIp, utf8Bytes } from '../../../lib/request-limits'
 import { compareSchemas } from '../../../lib/compare'
 import { parserErrorResponse } from '../../../lib/api-errors'
-import { readBoundedJson, RequestBodyTooLargeError } from '../../../lib/bounded-request-body'
+import { readJsonRequest } from '../../../lib/bounded-request-body'
 
 export const runtime = 'nodejs'
 
@@ -39,17 +39,9 @@ export async function POST(request: Request) {
     const limit = await apiRateLimit.limit(`diff:${requestIp(request)}`)
     if (!limit.success) return Response.json({ error: 'Rate limit exceeded. Please try again in a minute.' }, { status: 429 })
 
-    let body: Record<string, unknown>
-    try {
-      const parsedBody = await readBoundedJson(request)
-      if (!parsedBody || typeof parsedBody !== 'object' || Array.isArray(parsedBody)) {
-        return Response.json({ error: 'Invalid JSON request.' }, { status: 400 })
-      }
-      body = parsedBody as Record<string, unknown>
-    } catch (error) {
-      if (error instanceof RequestBodyTooLargeError) return Response.json({ error: 'Request is too large.' }, { status: 413 })
-      return Response.json({ error: 'Invalid JSON request.' }, { status: 400 })
-    }
+    const parsedRequest = await readJsonRequest(request)
+    if ('response' in parsedRequest) return parsedRequest.response
+    const body = parsedRequest.body
     oldDbml = typeof body.oldDbml === 'string' ? body.oldDbml : ''
     newDbml = typeof body.newDbml === 'string' ? body.newDbml : ''
     if (utf8Bytes(oldDbml) > MAX_SCHEMA_BYTES || utf8Bytes(newDbml) > MAX_SCHEMA_BYTES) {

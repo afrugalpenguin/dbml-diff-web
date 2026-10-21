@@ -28,6 +28,12 @@ const groupOld = readFileSync('group-v1.dbml', 'utf8')
 const groupNew = readFileSync('group-v2.dbml', 'utf8')
 
 describe('/api/diff comparison contract', () => {
+  it('returns 413 before reading an oversized declared body', async () => {
+    const response = await postDiff(new Request('http://localhost/api/diff', { method: 'POST', headers: { 'content-type': 'application/json', 'content-length': String(2 * 1024 * 1024 + 1) }, body: '{}' }))
+    expect(response.status).toBe(413)
+    expect(await response.json()).toEqual({ error: 'Request is too large.' })
+  })
+
   it('returns 400 for a null JSON body', async () => {
     const response = await postDiff(requestWithBody('null'))
     expect(response.status).toBe(400)
