@@ -2,6 +2,7 @@ import { nanoid } from 'nanoid'
 import { apiRateLimit, MAX_SCHEMA_BYTES, requestIp, utf8Bytes } from '../../../lib/request-limits'
 import { compareSchemas } from '../../../lib/compare'
 import { parserErrorResponse } from '../../../lib/api-errors'
+import { readBoundedJson, RequestBodyTooLargeError } from '../../../lib/bounded-request-body'
 
 export const runtime = 'nodejs'
 
@@ -40,12 +41,13 @@ export async function POST(request: Request) {
 
     let body: Record<string, unknown>
     try {
-      const parsedBody = await request.json()
+      const parsedBody = await readBoundedJson(request)
       if (!parsedBody || typeof parsedBody !== 'object' || Array.isArray(parsedBody)) {
         return Response.json({ error: 'Invalid JSON request.' }, { status: 400 })
       }
       body = parsedBody as Record<string, unknown>
-    } catch {
+    } catch (error) {
+      if (error instanceof RequestBodyTooLargeError) return Response.json({ error: 'Request is too large.' }, { status: 413 })
       return Response.json({ error: 'Invalid JSON request.' }, { status: 400 })
     }
     oldDbml = typeof body.oldDbml === 'string' ? body.oldDbml : ''
