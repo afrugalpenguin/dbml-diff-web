@@ -1,5 +1,5 @@
 import { nanoid } from 'nanoid'
-import { apiRateLimit, MAX_SCHEMA_BYTES, requestIp, utf8Bytes } from '../../../lib/request-limits'
+import { MAX_SCHEMA_BYTES, rateLimitForRequest, utf8Bytes } from '../../../lib/request-limits'
 import { compareSchemas } from '../../../lib/compare'
 import { parserErrorResponse } from '../../../lib/api-errors'
 import { readJsonRequest } from '../../../lib/bounded-request-body'
@@ -36,7 +36,7 @@ export async function POST(request: Request) {
   let oldDbml = ''
   let newDbml = ''
   try {
-    const limit = await apiRateLimit.limit(`diff:${requestIp(request)}`)
+    const limit = await rateLimitForRequest(request, 'diff')
     if (!limit.success) return Response.json({ error: 'Rate limit exceeded. Please try again in a minute.' }, { status: 429 })
 
     const parsedRequest = await readJsonRequest(request)

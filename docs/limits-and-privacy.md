@@ -11,6 +11,8 @@ The server caps each JSON request body at 2 MiB before parsing. This bounds memo
 
 ## Rate limits
 
+Identified requests use 30 requests per minute per validated client IP. Requests without a valid IP use a separate shared 10 requests per minute bucket. In Vercel deployments, `@vercel/functions` reads `x-real-ip`; the trust comes from Vercel overwriting that header, not from the helper. This guarantee applies only on Vercel; local development uses the stricter shared bucket. The app intentionally ignores `x-forwarded-for`. See [Vercel request headers](https://vercel.com/docs/headers/request-headers#x-real-ip).
+
 - 30 requests per minute per client IP, sliding window, using `@upstash/ratelimit`.
 - Counted separately for `/api/diff` and `/api/share`.
 - The client IP is the first address in `x-forwarded-for`, then `x-real-ip`.
