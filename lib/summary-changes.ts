@@ -31,26 +31,33 @@ export function tableDetailRows(table: ModifiedTable): TableDetailRow[] {
   ]
 }
 
-export type AttentionItem = { id: string; target?: string; schema: 'old' | 'new'; text: string }
+// Where an attention item is in the schemas: Schema A for what was removed, Schema B for everything else.
+export type EditorFocus = { schema: 'old' | 'new'; table: string; column?: string }
+
+export type AttentionItem = { id: string; target?: string; focus: EditorFocus; text: string }
 
 export function attentionItems(parsed: DiffResult): AttentionItem[] {
   return [
     ...parsed.tables.removed.map((table) => ({
       id: `table-${table.name}`,
-      schema: 'old' as const,
+      focus: { schema: 'old' as const, table: table.name },
       text: `${table.name} removed in B. Dropping it deletes the table and all its data.`,
       target: undefined,
     })),
     ...parsed.tables.modified.flatMap((table) => {
-      const item = (column: string, kind: ChangeKind, text: string) => ({
+      const item = (column: string, kind: ChangeKind, text: string, focus: EditorFocus = { schema: 'new', table: table.name, column }) => ({
         id: `table-${table.name}`,
         target: changeTarget(table.name, column, kind),
-        schema: 'new' as const,
+        focus,
         text,
       })
       return [
         ...table.columnsRemoved.map((column) =>
-          item(column.name, 'removed', `${table.name}.${column.name} removed in B. Dropping this column deletes its data.`)),
+          item(column.name, 'removed', `${table.name}.${column.name} removed in B. Dropping this column deletes its data.`, {
+            schema: 'old',
+            table: table.name,
+            column: column.name,
+          })),
         ...table.columnsAdded.filter((column) => column.notNull).map((column) =>
           item(column.name, 'added', `${table.name}.${column.name} added in B as NOT NULL. This fails on existing rows without a default.`)),
         ...table.columnsChanged.flatMap(({ column, before }) => {
@@ -72,7 +79,11 @@ export function attentionItems(parsed: DiffResult): AttentionItem[] {
           return items
         }),
         ...table.renames.map((rename) =>
-          item(rename.from.name, 'renamed', `${rename.from.name} -> ${rename.to.name} looks like a rename. Confirm it before running the migration.`)),
+          item(rename.from.name, 'renamed', `${rename.from.name} -> ${rename.to.name} looks like a rename. Confirm it before running the migration.`, {
+            schema: 'new',
+            table: table.name,
+            column: rename.to.name,
+          })),
       ]
     }),
   ]

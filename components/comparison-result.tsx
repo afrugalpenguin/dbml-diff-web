@@ -2,6 +2,7 @@
 
 import { Copy } from 'lucide-react'
 import type { ComparisonPayload } from '../lib/diff-types'
+import type { EditorFocus } from '../lib/summary-changes'
 import { Summary } from './summary/summary'
 
 export const resultTabs = ['Summary', 'Text', 'Migration', 'DBML'] as const
@@ -18,7 +19,7 @@ export function ComparisonResult({
   comparison: ComparisonPayload
   tab: ResultTab
   onTab: (tab: ResultTab) => void
-  onAttention: (schema: 'old' | 'new', text: string) => void
+  onAttention: (focus: EditorFocus) => void
 }) {
   const parsed = comparison.parsedResult
   return (

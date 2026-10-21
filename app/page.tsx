@@ -7,6 +7,7 @@ import { CompareStatus, type Diagnostic } from '../components/compare-status'
 import { ComparisonResult, type ResultTab } from '../components/comparison-result'
 import { SiteFooter } from '../components/site-footer'
 import { SiteHeader } from '../components/site-header'
+import { editorFocusLine } from '../lib/dbml-locate'
 import { MAX_SCHEMA_BYTES } from '../lib/limits'
 import type { ComparisonPayload } from '../lib/diff-types'
 
@@ -39,7 +40,7 @@ export default function Page() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [diagnostic, setDiagnostic] = useState<Diagnostic>({})
-  const [focusTarget, setFocusTarget] = useState<{ schema: 'old' | 'new'; text: string } | null>(null)
+  const [focusTarget, setFocusTarget] = useState<{ schema: 'old' | 'new'; line: number; key: number } | null>(null)
 
   function resetResult() {
     setComparison(null)
@@ -97,7 +98,7 @@ export default function Page() {
             value={oldDbml}
             onChange={setOldDbml}
             errorLine={error && diagnostic.schema === 'old' ? diagnostic.line : undefined}
-            focusText={focusTarget?.schema === 'old' ? focusTarget.text : undefined}
+            focusLine={focusTarget?.schema === 'old' ? focusTarget : undefined}
           />
           <button
             type="button"
@@ -120,7 +121,7 @@ export default function Page() {
             value={newDbml}
             onChange={setNewDbml}
             errorLine={error && diagnostic.schema !== 'old' ? diagnostic.line : undefined}
-            focusText={focusTarget?.schema === 'new' ? focusTarget.text : undefined}
+            focusLine={focusTarget?.schema === 'new' ? focusTarget : undefined}
           />
         </section>
         <div className="mt-3 flex flex-col items-start gap-3 sm:flex-row sm:items-center">
@@ -151,7 +152,10 @@ export default function Page() {
             comparison={comparison}
             tab={tab}
             onTab={setTab}
-            onAttention={(schema, text) => setFocusTarget({ schema, text })}
+            onAttention={(focus) => {
+              const target = editorFocusLine(focus, oldDbml, newDbml)
+              setFocusTarget((current) => (target ? { ...target, key: (current?.key ?? 0) + 1 } : null))
+            }}
           />
         )}
         <SiteFooter />

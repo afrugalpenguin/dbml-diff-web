@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react'
 import type { DiffResult, RefEndpoint } from '../../lib/diff-types'
-import { attentionItems } from '../../lib/summary-changes'
+import { attentionItems, type EditorFocus } from '../../lib/summary-changes'
 import {
   displayName,
   enumChanges,
@@ -36,7 +36,7 @@ export function Summary({
 }: {
   parsed: DiffResult
   counts: DiffResult['counts']
-  onAttention?: (schema: 'old' | 'new', text: string) => void
+  onAttention?: (focus: EditorFocus) => void
 }) {
   const [changeFilter, setChangeFilter] = useState<ChangeFilter>('All')
   const [kindFilter, setKindFilter] = useState<KindFilter>('All')
@@ -131,7 +131,10 @@ export function Summary({
         items={attention}
         open={openSections.attention}
         onToggle={() => toggleSection('attention')}
-        onSelect={(item) => jumpTo({ id: item.id, target: item.target })}
+        onSelect={(item) => {
+          jumpTo({ id: item.id, target: item.target })
+          onAttention(item.focus)
+        }}
       />
       <SummaryTables
         tables={visibleTables}

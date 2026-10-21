@@ -33,3 +33,27 @@ describe('Summary change targets', () => {
     expect(attentionItems(parsed)).toEqual([expect.objectContaining({ id: 'table-t', target: undefined })])
   })
 })
+
+describe('Needs attention editor focus', () => {
+  const focusOf = (oldDbml: string, newDbml: string, text: string) =>
+    attentionItems(compareSchemas(oldDbml, newDbml).parsedResult).find((item) => item.text.includes(text))?.focus
+
+  it('points a removed table at Schema A', () => {
+    expect(focusOf('Table t {\n  id int\n}', '', 't removed in B')).toEqual({ schema: 'old', table: 't' })
+  })
+
+  it('points a removed column at Schema A, where it still exists', () => {
+    const focus = focusOf('Table t {\n  id int\n  a int\n  b int\n}', 'Table t {\n  id int\n  b int\n}', 't.a removed in B')
+    expect(focus).toEqual({ schema: 'old', table: 't', column: 'a' })
+  })
+
+  it('points a NOT NULL change at the column in Schema B', () => {
+    const focus = focusOf('Table t {\n  id int\n  a int\n}', 'Table t {\n  id int\n  a int [not null]\n}', 'is now NOT NULL')
+    expect(focus).toEqual({ schema: 'new', table: 't', column: 'a' })
+  })
+
+  it('points a rename at the new column name in Schema B', () => {
+    const focus = focusOf('Table t {\n  id int\n  a int\n}', 'Table t {\n  id int\n  b int\n}', 'looks like a rename')
+    expect(focus).toEqual({ schema: 'new', table: 't', column: 'b' })
+  })
+})
