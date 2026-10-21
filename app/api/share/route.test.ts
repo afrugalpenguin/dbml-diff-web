@@ -131,4 +131,34 @@ describe('POST /api/share', () => {
     expect(response.status).toBe(400)
     expect(mockSet).not.toHaveBeenCalled()
   })
+
+  it('stores the comparison for 30 days and returns its id', async () => {
+    const response = await share({ oldDbml, newDbml })
+
+    expect(response.status).toBe(200)
+    const payload = await response.json()
+    expect(payload).toEqual({ id: expect.stringMatching(/^[A-Za-z0-9_-]{10}$/), storedBytes: 100 })
+    expect(mockSet).toHaveBeenCalledWith(`comparison:${payload.id}`, expect.anything(), { ex: 60 * 60 * 24 * 30 })
+  })
+
+  it('returns 429 and stores nothing when the rate limit is exceeded', async () => {
+    mockLimit.mockResolvedValueOnce({ success: false })
+
+    const response = await share({ oldDbml, newDbml })
+
+    expect(response.status).toBe(429)
+    expect(await response.json()).toEqual({ error: 'Rate limit exceeded. Please try again in a minute.' })
+    expect(mockSet).not.toHaveBeenCalled()
+  })
+
+  it.each([
+    ['Schema A', () => ({ oldDbml: 'x'.repeat(500 * 1024 + 1), newDbml })],
+    ['Schema B', () => ({ oldDbml, newDbml: 'x'.repeat(500 * 1024 + 1) })],
+  ])('returns 413 and stores nothing when %s is over 500 KB', async (_, body) => {
+    const response = await share(body())
+
+    expect(response.status).toBe(413)
+    expect(await response.json()).toEqual({ error: 'Each schema must be 500 KB or smaller.' })
+    expect(mockSet).not.toHaveBeenCalled()
+  })
 })
