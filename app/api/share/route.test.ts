@@ -49,6 +49,12 @@ describe('POST /api/share', () => {
     vi.clearAllMocks()
   })
 
+  it('returns 400 for a null JSON body', async () => {
+    const response = await POST(new Request('http://localhost/api/share', { method: 'POST', headers: { 'content-type': 'application/json' }, body: 'null' }))
+    expect(response.status).toBe(400)
+    expect(await response.json()).toEqual({ error: 'Invalid JSON request.' })
+  })
+
   it('returns 400 for malformed request JSON', async () => {
     const response = await POST(new Request('http://localhost/api/share', { method: 'POST', body: '{' }))
     expect(response.status).toBe(400)

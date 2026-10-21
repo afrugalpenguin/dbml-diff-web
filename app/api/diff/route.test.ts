@@ -28,6 +28,12 @@ const groupOld = readFileSync('group-v1.dbml', 'utf8')
 const groupNew = readFileSync('group-v2.dbml', 'utf8')
 
 describe('/api/diff comparison contract', () => {
+  it('returns 400 for a null JSON body', async () => {
+    const response = await postDiff(requestWithBody('null'))
+    expect(response.status).toBe(400)
+    expect(await response.json()).toEqual({ error: 'Invalid JSON request.' })
+  })
+
   it('returns 400 for malformed request JSON', async () => {
     const response = await postDiff(requestWithBody('{'))
     expect(response.status).toBe(400)
@@ -35,12 +41,20 @@ describe('/api/diff comparison contract', () => {
   })
 
   it('returns parser diagnostics without exposing internal errors', async () => {
-    const response = await postDiff(requestWithBody(JSON.stringify({ oldDbml: 'Table old {}', newDbml: 'Table broken { id int [pk' })))
+    const response = await postDiff(requestWithBody(JSON.stringify({ oldDbml: 'Table old {}', newDbml: 'Table broken { }' })))
     const payload = await response.json()
     expect(response.status).toBe(400)
     expect(payload.error).toEqual(expect.any(String))
     expect(payload.error).not.toContain('internal')
     expect(payload.diagnostic).toEqual(expect.objectContaining({ schema: 'new', line: expect.any(Number) }))
+  })
+
+  it('hides rate limiter errors from clients', async () => {
+    const requestLimits = await import('../../../lib/request-limits')
+    vi.mocked(requestLimits.apiRateLimit.limit).mockRejectedValueOnce(new Error('redis connection details'))
+    const response = await postDiff(requestWithBody(JSON.stringify({ oldDbml: 'Table old {}', newDbml: 'Table new {}' })))
+    expect(response.status).toBe(500)
+    expect(await response.json()).toEqual({ error: 'Unable to compare DBML schemas.' })
   })
 
   it('returns a generic 500 for unexpected errors without the internal message', async () => {

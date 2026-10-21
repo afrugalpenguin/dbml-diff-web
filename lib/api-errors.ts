@@ -3,7 +3,7 @@ type Diagnostic = {
   location?: { start?: { line?: number; column?: number } }
 }
 
-export function parserDiagnostic(error: unknown): Diagnostic | undefined {
+function parserDiagnostic(error: unknown): Diagnostic | undefined {
   if (typeof error !== 'object' || error === null || !('diags' in error)) return undefined
   const diags = (error as { diags?: unknown }).diags
   return Array.isArray(diags) && diags[0] && typeof diags[0] === 'object' ? diags[0] as Diagnostic : undefined
