@@ -27,7 +27,7 @@ All diffing is done by the package. Never reimplement diff logic in the app.
 - Every bug fix gets a test that fails without the fix.
 - A test must exercise what its name says. Route tests call the route handler.
 - Fixtures live in test/fixtures/, not the repo root.
-- Run `pnpm test` and `pnpm build`, and say what you ran and the result.
+- Run `pnpm lint`, `pnpm typecheck`, `pnpm test` and `pnpm build`, and say what you ran and the result.
 
 ## Branches, commits and pull requests
 - Every change has a GitHub issue. If none exists, create it first.
