@@ -27,6 +27,13 @@ describe('/api/diff route contract', () => {
     expect(await response.json()).toEqual(expect.objectContaining({ parsedResult: expect.any(Object), text: expect.any(String) }))
   })
 
+  it('returns the schema graph for the diagram', async () => {
+    const response = await postDiff(requestWithBody(JSON.stringify({ oldDbml, newDbml })))
+    const body = await response.json()
+    expect(body.graph.tables.map((table: { kind: string }) => table.kind)).toEqual(expect.arrayContaining(['added', 'removed', 'modified']))
+    expect(body.graph).toEqual({ tables: expect.any(Array), refs: expect.any(Array), unresolved: expect.any(Number) })
+  })
+
   it('returns 400 for empty schemas', async () => {
     const response = await postDiff(requestWithBody(JSON.stringify({ oldDbml: '', newDbml: '' })))
     expect(response.status).toBe(400)

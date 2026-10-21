@@ -149,6 +149,7 @@ export default function Page() {
         </div>
         {comparison && (
           <ComparisonResult
+            key={comparison.id}
             comparison={comparison}
             tab={tab}
             onTab={setTab}

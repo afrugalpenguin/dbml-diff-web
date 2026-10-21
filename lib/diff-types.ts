@@ -114,4 +114,27 @@ export type ComparisonPayload = {
   migration: string
   dbml: string
   parsedResult: DiffResult
+  // Only /api/diff adds this; shared comparisons do not store it.
+  graph?: SchemaGraph
+}
+
+export type GraphTableKind = 'added' | 'removed' | 'modified' | 'unchanged'
+export type GraphColumnKind = 'added' | 'removed' | 'changed' | 'renamed' | 'unchanged'
+export type GraphRefKind = 'added' | 'removed' | 'retargeted' | 'unchanged'
+
+export type GraphColumn = ColumnChange & { kind: GraphColumnKind; renamedFrom?: string }
+
+export type GraphTable = {
+  name: string
+  kind: GraphTableKind
+  columns: GraphColumn[]
+}
+
+export type GraphRef = AddedOrRemovedRef & { kind: GraphRefKind }
+
+// Every table and ref in both schemas, marked with its change, for the diagram.
+export type SchemaGraph = {
+  tables: GraphTable[]
+  refs: GraphRef[]
+  unresolved: number
 }

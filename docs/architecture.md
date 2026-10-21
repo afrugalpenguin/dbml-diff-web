@@ -6,7 +6,7 @@ A Next.js 16 App Router app (React 19, Tailwind CSS 4, shadcn, CodeMirror 6). Al
 
 | Route | Type | What it does |
 |---|---|---|
-| `/` | Static page (client component) | Two DBML editors, Compare, Swap, Clear, result tabs (Summary, Text, Migration, DBML). The Share button is temporarily hidden. |
+| `/` | Static page (client component) | Two DBML editors, Compare, Swap, Clear, result tabs (Summary, Diagram, Text, Migration, DBML). The Share button is temporarily hidden. |
 | `POST /api/diff` | Route handler (Node.js runtime) | Compares two schemas and returns all output formats. Stores nothing. |
 | `POST /api/share` | Route handler (Node.js runtime) | Stores a completed comparison in Redis and returns its id. Kept working while the Share button is hidden. |
 | `/c/[id]` | Dynamic page (server component) | Read-only view of a shared comparison. Shows the text output. Returns 404 if the id is malformed, unknown or expired, or its stored value is invalid. |
@@ -20,10 +20,13 @@ A Next.js 16 App Router app (React 19, Tailwind CSS 4, shadcn, CodeMirror 6). Al
 3. `compareSchemas()` (`lib/compare.ts`) calls `diff()` from dbml-diff and the emitters `emitJson`, `emitText`, `emitMigration` and `emitDbml`.
 4. Each changed column in the result carries `before`, its Schema A values, from dbml-diff (1.3.0 and later). The Summary's "Needs attention" items use these structured values, never the human-readable `changes` text.
 5. If the parser fails, `compareSchemas()` runs `diff(oldDbml, '')` to tell which schema failed. The 400 response names Schema A or Schema B and, for syntax errors, the line and column, which the matching editor highlights.
-6. The response contains both schemas, every output format, the parsed JSON result (`parsedResult`), counts, a timestamp and a random id. Nothing is written to storage.
-7. The browser keeps the response in memory and renders it.
+6. `/api/diff` also builds `graph` with `schemaGraph()` (`lib/schema-graph.ts`): every table and ref in both schemas, each marked added, removed, modified (retargeted for refs) or unchanged, with per-column kinds. It comes from dbml-diff's structured output only: the diff itself, plus `diff('', newDbml)` and `diff(oldDbml, '')`, which list every table and ref of each schema. `/api/share` does not build or store it.
+7. The response contains both schemas, every output format, the parsed JSON result (`parsedResult`), `graph`, counts, a timestamp and a random id. Nothing is written to storage.
+8. The browser keeps the response in memory and renders it.
 
 Clicking a "Needs attention" item jumps to its Summary row and highlights its line in the editor it belongs to: Schema A for a removed table or column, Schema B for everything else. Each item carries a structured focus (schema, table, column), and `findDbmlLine()` (`lib/dbml-locate.ts`) finds that table's block in the current editor text, then the column inside it. If the line is no longer there, for example after an edit, nothing is highlighted.
+
+The Diagram tab loads React Flow and dagre only when it is first opened. It shows the changed tables, the tables at either end of a changed ref, and their direct ref neighbours; a toggle shows the whole schema, asking first above 300 tables. Tables are laid out with dagre and can be dragged. Clicking a changed table switches to the Summary, clears any filter that hides the table, and expands, scrolls to and flashes its row. Positions reset on a new compare.
 
 ### Share
 
@@ -46,9 +49,13 @@ The Share button is temporarily hidden, so the browser does not currently call t
 | `app/page.tsx` | The main page: editor and comparison state, and the compare request. |
 | `components/site-header.tsx`, `components/site-footer.tsx` | Page header (with the dbml-diff version badge) and footer. |
 | `components/compare-status.tsx` | The "Comparison complete" status and the error with its schema, line and column. |
-| `components/comparison-result.tsx` | The result panel and its tabs (Summary, Text, Migration, DBML). |
+| `components/comparison-result.tsx` | The result panel and its tabs (Summary, Diagram, Text, Migration, DBML). |
+| `components/diff-diagram.tsx` | The Diagram tab: React Flow canvas, table nodes, mode toggle and legend. |
 | `components/summary/` | The `Summary` component and its sections: toolbar, Needs attention, tables, groups, enums, refs and legend. |
 | `lib/summary-groups.ts` | Summary grouping and display helpers: table change entries, grouping by schema, group moves, enum and ref rows, shared schema prefix. |
+| `lib/summary-jump.ts` | Summary filter types, whether a table is visible under them, and which filters a jump must clear. |
+| `lib/schema-graph.ts` | `schemaGraph()`: every table and ref in both schemas with its change kind, for the diagram. |
+| `lib/diagram-graph.ts` | Diagram selection (changed and neighbours, or whole schema), React Flow nodes and edges with kind colours, and the dagre layout. |
 | `lib/summary-changes.ts` | Summary logic built from structured change records: "Needs attention" items, table detail rows, change kinds with their symbols and colours, and the stable target ids (table, column, change kind) that jump-to highlighting compares. |
 | `lib/dbml-locate.ts` | `findDbmlLine()`: the line of a table, or of a column inside its own table block, in DBML text. Used to focus the editor from a "Needs attention" item. |
 | `app/api/diff/route.ts` | Compare endpoint and the unclosed-block pre-check. |

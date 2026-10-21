@@ -1,6 +1,6 @@
 # dbml-diff web
 
-Compare two DBML schemas in the browser and get a summary, text diff, SQL migration and DBML diff: **https://dbml-diff.dev**
+Compare two DBML schemas in the browser and get a summary, an interactive diagram, text diff, SQL migration and DBML diff: **https://dbml-diff.dev**
 
 A web front end for the [dbml-diff](https://github.com/afrugalpenguin/dbml-diff) package ([npm](https://www.npmjs.com/package/dbml-diff)).
 

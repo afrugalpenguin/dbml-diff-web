@@ -1,6 +1,7 @@
 import { nanoid } from 'nanoid'
 import { MAX_SCHEMA_BYTES, rateLimitForRequest, utf8Bytes } from '../../../lib/request-limits'
 import { compareSchemas } from '../../../lib/compare'
+import { schemaGraph } from '../../../lib/schema-graph'
 import { parserErrorResponse } from '../../../lib/api-errors'
 import { readJsonRequest } from '../../../lib/bounded-request-body'
 
@@ -72,7 +73,7 @@ export async function POST(request: Request) {
       result: output.result,
       text: output.text, migration: output.migration, dbml: output.dbml,
     }
-    return Response.json({ ...comparison, parsedResult: output.parsedResult })
+    return Response.json({ ...comparison, parsedResult: output.parsedResult, graph: schemaGraph(oldDbml, newDbml, output.parsedResult) })
   } catch (error) {
     return parserErrorResponse(error, 'new') ?? Response.json({ error: 'Unable to compare DBML schemas.' }, { status: 500 })
   }

@@ -15,13 +15,14 @@ import {
   sharedSchemaPrefix,
   tableChanges,
 } from '../../lib/summary-groups'
+import { summaryJump, tableVisible, type ChangeFilter, type KindFilter } from '../../lib/summary-jump'
 import { SummaryAttention } from './attention'
 import { SummaryEnums } from './enums'
 import { SummaryGroups } from './groups'
 import { SummaryLegend } from './legend'
 import { SummaryRefs } from './refs'
 import { SummaryTables } from './tables'
-import { SummaryToolbar, type ChangeFilter, type KindFilter, type SectionCounts } from './toolbar'
+import { SummaryToolbar, type SectionCounts } from './toolbar'
 
 export type FlashTarget = { id: string; target?: string }
 
@@ -33,10 +34,13 @@ export function Summary({
   parsed,
   counts,
   onAttention = () => {},
+  jumpTo,
 }: {
   parsed: DiffResult
   counts: DiffResult['counts']
   onAttention?: (focus: EditorFocus) => void
+  // A table to show, from the diagram. A new key jumps again.
+  jumpTo?: { table: string; key: number }
 }) {
   const [changeFilter, setChangeFilter] = useState<ChangeFilter>('All')
   const [kindFilter, setKindFilter] = useState<KindFilter>('All')
@@ -46,12 +50,7 @@ export function Summary({
   const allTableChanges = useMemo(() => tableChanges(parsed.tables), [parsed.tables])
   const matches = (value: string) => matchesQuery(query, value)
   const visibleTables = allTableChanges
-    .filter(
-      ({ item, kind }) =>
-        (changeFilter === 'All' || changeFilter === kind) &&
-        (kindFilter === 'All' || kindFilter === 'Tables') &&
-        matches(item.name),
-    )
+    .filter((entry) => tableVisible(entry, { changeFilter, kindFilter, query }))
     .sort((a, b) => a.kind.localeCompare(b.kind) || a.item.name.localeCompare(b.item.name))
   const attention = attentionItems(parsed).filter(({ text }) => matches(text))
   const sharedSchema = sharedSchemaPrefix(parsed)
@@ -101,15 +100,31 @@ export function Summary({
       else next.add(id)
       return next
     })
-  const jumpTo = (target: FlashTarget) => {
+  const showRow = (target: FlashTarget) => {
     setExpanded((current) => new Set(current).add(target.id))
     setFlashTarget(target)
-    window.setTimeout(() => setFlashTarget((current) => (current?.id === target.id ? null : current)), 1500)
-    requestAnimationFrame(() => {
-      const row = document.getElementById(target.id)
-      row?.scrollIntoView({ behavior: scrollBehavior(), block: 'center' })
-      row?.focus({ preventScroll: true })
-    })
+  }
+  // Runs after the row is rendered, so a row that a jump has just unhidden can be scrolled to.
+  useEffect(() => {
+    if (!flashTarget) return
+    const row = document.getElementById(flashTarget.id)
+    row?.scrollIntoView({ behavior: scrollBehavior(), block: 'center' })
+    row?.focus({ preventScroll: true })
+    const timer = window.setTimeout(() => setFlashTarget(null), 1500)
+    return () => window.clearTimeout(timer)
+  }, [flashTarget])
+  const [handledJump, setHandledJump] = useState<number>()
+  if (jumpTo && jumpTo.key !== handledJump) {
+    setHandledJump(jumpTo.key)
+    const entry = allTableChanges.find(({ item }) => item.name === jumpTo.table)
+    if (entry) {
+      const filters = summaryJump(entry, { changeFilter, kindFilter, query })
+      setChangeFilter(filters.changeFilter)
+      setKindFilter(filters.kindFilter)
+      setQuery(filters.query)
+      setOpenSections((current) => ({ ...current, tables: true }))
+      showRow({ id: entry.id })
+    }
   }
   return (
     <div className="flex flex-col gap-5">
@@ -132,7 +147,7 @@ export function Summary({
         open={openSections.attention}
         onToggle={() => toggleSection('attention')}
         onSelect={(item) => {
-          jumpTo({ id: item.id, target: item.target })
+          showRow({ id: item.id, target: item.target })
           onAttention(item.focus)
         }}
       />

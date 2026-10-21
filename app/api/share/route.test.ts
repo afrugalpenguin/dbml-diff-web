@@ -112,6 +112,12 @@ describe('POST /api/share', () => {
     expect(mockSet).toHaveBeenCalledWith(`comparison:${stored.id}`, expect.anything(), { ex: 60 * 60 * 24 * 30 })
   })
 
+  it('does not store the diagram graph, even when the client sends one', async () => {
+    const response = await share({ oldDbml, newDbml, graph: { tables: [], refs: [], unresolved: 0 } })
+    expect(response.status).toBe(200)
+    expect(mockEncode.mock.calls[0][0]).not.toHaveProperty('graph')
+  })
+
   it('returns 400 and stores nothing when a schema is missing', async () => {
     const response = await share({ oldDbml, text: 'TAMPERED text', parsedResult: { counts: {} } })
 

@@ -44,9 +44,10 @@ Vitest, run from the repo root. Tests read fixtures from `test/fixtures/`. Most 
 | `app/summary-attention.test.ts` | "Needs attention" items built from structured column changes. |
 | `components/code-editor.test.ts` | The editor error-line decoration. |
 | `components/code-editor-focus.test.tsx` | The editor focus line, mounted in jsdom. |
-| `components/comparison-result.test.tsx` | The result tabs: each shows its output, and Migration has the SQL heading. |
-| `components/summary/summary.test.tsx` | Clicking a "Needs attention" item reports its editor focus to the page (jsdom). |
-| `lib/*.test.ts` | Request body limits, rate limit buckets, share validation and request body, the structured before values in `compareSchemas()`, the Summary's change targets (each attention item highlights exactly one row) and editor focus, and the DBML line lookup. |
+| `components/comparison-result.test.tsx` | The result tabs: each shows its output, Migration has the SQL heading, and Diagram appears only with a graph. |
+| `components/summary/summary.test.tsx` | Clicking a "Needs attention" item reports its editor focus to the page, and a jump from the diagram shows, expands and scrolls to the table (jsdom). |
+| `components/diff-diagram.test.tsx` | The diagram's default and whole-schema views, table clicks and the large-schema confirmation (jsdom, with the layout APIs React Flow needs stubbed). |
+| `lib/*.test.ts` | Request body limits, rate limit buckets, share validation and request body, the structured before values in `compareSchemas()`, the Summary's change targets (each attention item highlights exactly one row) and editor focus, the DBML line lookup, the diagram's schema graph, selection, styles and layout (including a 300-table schema), and which filters a Summary jump clears. |
 | `next.config.test.ts` | Security headers and build type checking. |
 | `source-lines.test.ts` | No line in `app/`, `components/` or `lib/` is longer than 160 characters. |
 
