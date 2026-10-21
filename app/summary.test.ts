@@ -25,6 +25,20 @@ describe('Summary', () => {
     expect(result.tables.added).toHaveLength(1)
     expect(result.tables.removed).toHaveLength(1)
     expect(result.tables.modified).toHaveLength(4)
+    expect(result.groups.added).toHaveLength(1)
+    expect(result.groups.removed).toHaveLength(0)
+    expect(result.groups.modified).toHaveLength(0)
+  })
+
+  it('renders the full fixture summary without treating columns as React children', () => {
+    const parsed = JSON.parse(emitJson(diff(oldDbml, newDbml)))
+    const markup = renderToStaticMarkup(createElement(Summary, { parsed, counts: parsed.counts }))
+    expect(markup).toContain('ZoneId -&gt; GeoZoneId')
+    expect(markup).toContain('(heuristic - verify)')
+    expect(markup).toContain('+ column PlanKindId INT NOT NULL')
+    expect(markup.replace(/<[^>]+>/g, '')).toContain('+PlanKind')
+    expect(markup.replace(/<[^>]+>/g, '')).toContain('Lookups')
+    expect(markup).toContain('Groups')
   })
 
   it('renders enum and ref changes', () => {
@@ -49,10 +63,14 @@ describe('Summary', () => {
     expect(result.tables.added).toHaveLength(0)
     expect(result.tables.removed).toHaveLength(0)
     expect(result.tables.modified).toHaveLength(0)
+    expect(result.groups.added).toHaveLength(0)
+    expect(result.groups.removed).toHaveLength(0)
+    expect(result.groups.modified).toHaveLength(0)
   })
 
   it('renders added and removed refs', () => {
     const parsed = JSON.parse(emitJson(diff(refAddRemoveOld, refAddRemoveNew)))
+    expect(parsed.refs.unresolved).toHaveLength(0)
     const text = summaryText(parsed)
     expect(text).toContain('+Child.id→Other.id')
     expect(text).toContain('-Child.parent_id→Parent.id')

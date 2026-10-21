@@ -1,5 +1,4 @@
 import { describe, expect, it, vi } from 'vitest'
-import { diff, emitJson } from 'dbml-diff'
 import { readFileSync } from 'node:fs'
 import { POST as postDiff } from './route'
 import * as compareModule from '../../../lib/compare'
@@ -17,12 +16,8 @@ function requestWithBody(body: BodyInit | null, contentType = 'application/json'
 
 const oldDbml = readFileSync('v1.dbml', 'utf8')
 const newDbml = readFileSync('v2.dbml', 'utf8')
-const enumRefOld = readFileSync('enum-ref-v1.dbml', 'utf8')
-const enumRefNew = readFileSync('enum-ref-v2.dbml', 'utf8')
-const refAddRemoveOld = readFileSync('ref-add-remove-v1.dbml', 'utf8')
-const refAddRemoveNew = readFileSync('ref-add-remove-v2.dbml', 'utf8')
-const groupOld = readFileSync('group-v1.dbml', 'utf8')
-const groupNew = readFileSync('group-v2.dbml', 'utf8')
+const closedDbml = ['Table a {', '  id int', '}'].join('\n')
+const unclosedDbml = ['Table a {', '  id int', '', 'Table b {', '  id int', '}'].join('\n')
 
 describe('/api/diff route contract', () => {
   it('returns a successful comparison response', async () => {
@@ -34,6 +29,33 @@ describe('/api/diff route contract', () => {
   it('returns 400 for empty schemas', async () => {
     const response = await postDiff(requestWithBody(JSON.stringify({ oldDbml: '', newDbml: '' })))
     expect(response.status).toBe(400)
+    expect(await response.json()).toEqual({ error: 'Both DBML schemas are required.' })
+  })
+
+  it('returns 429 when the rate limit is exceeded', async () => {
+    const requestLimits = await import('../../../lib/request-limits')
+    vi.mocked(requestLimits.apiRateLimit.limit).mockResolvedValueOnce({ success: false } as never)
+    const response = await postDiff(requestWithBody(JSON.stringify({ oldDbml, newDbml })))
+    expect(response.status).toBe(429)
+    expect(await response.json()).toEqual({ error: 'Rate limit exceeded. Please try again in a minute.' })
+  })
+
+  it.each([
+    ['Schema A', { oldDbml: 'x'.repeat(500 * 1024 + 1), newDbml }],
+    ['Schema B', { oldDbml, newDbml: 'x'.repeat(500 * 1024 + 1) }],
+  ])('returns 413 when %s is over 500 KB', async (_, body) => {
+    const response = await postDiff(requestWithBody(JSON.stringify(body)))
+    expect(response.status).toBe(413)
+    expect(await response.json()).toEqual({ error: 'Each schema must be 500 KB or smaller.' })
+  })
+
+  it.each([
+    ['old', { oldDbml: unclosedDbml, newDbml: closedDbml }],
+    ['new', { oldDbml: closedDbml, newDbml: unclosedDbml }],
+  ])('returns 400 for an unclosed block in the %s schema', async (schema, body) => {
+    const response = await postDiff(requestWithBody(JSON.stringify(body)))
+    expect(response.status).toBe(400)
+    expect((await response.json()).diagnostic).toEqual({ schema, line: 1 })
   })
 
   it('returns 413 before reading an oversized declared body', async () => {
