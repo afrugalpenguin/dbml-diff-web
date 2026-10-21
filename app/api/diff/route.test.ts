@@ -1,9 +1,22 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { createElement } from 'react'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { diff, emitJson } from 'dbml-diff'
 import { readFileSync } from 'node:fs'
 import { Summary } from '../../page'
+import { POST as postDiff } from './route'
+import * as compareModule from '../../../lib/compare'
+
+vi.mock('../../../lib/request-limits', () => ({
+  MAX_SCHEMA_BYTES: 500 * 1024,
+  apiRateLimit: { limit: vi.fn().mockResolvedValue({ success: true }) },
+  requestIp: vi.fn(() => 'test'),
+  utf8Bytes: (value: string) => new TextEncoder().encode(value).byteLength,
+}))
+
+function requestWithBody(body: BodyInit | null, contentType = 'application/json') {
+  return new Request('http://localhost/api/diff', { method: 'POST', headers: { 'content-type': contentType }, body })
+}
 
 const oldDbml = readFileSync('v1.dbml', 'utf8')
 const newDbml = readFileSync('v2.dbml', 'utf8')
@@ -15,6 +28,42 @@ const groupOld = readFileSync('group-v1.dbml', 'utf8')
 const groupNew = readFileSync('group-v2.dbml', 'utf8')
 
 describe('/api/diff comparison contract', () => {
+  it('returns 400 for a null JSON body', async () => {
+    const response = await postDiff(requestWithBody('null'))
+    expect(response.status).toBe(400)
+    expect(await response.json()).toEqual({ error: 'Invalid JSON request.' })
+  })
+
+  it('returns 400 for malformed request JSON', async () => {
+    const response = await postDiff(requestWithBody('{'))
+    expect(response.status).toBe(400)
+    expect(await response.json()).toEqual({ error: 'Invalid JSON request.' })
+  })
+
+  it('returns parser diagnostics without exposing internal errors', async () => {
+    const response = await postDiff(requestWithBody(JSON.stringify({ oldDbml: 'Table old {}', newDbml: 'Table broken { }' })))
+    const payload = await response.json()
+    expect(response.status).toBe(400)
+    expect(payload.error).toEqual(expect.any(String))
+    expect(payload.error).not.toContain('internal')
+    expect(payload.diagnostic).toEqual(expect.objectContaining({ schema: 'new', line: expect.any(Number) }))
+  })
+
+  it('hides rate limiter errors from clients', async () => {
+    const requestLimits = await import('../../../lib/request-limits')
+    vi.mocked(requestLimits.apiRateLimit.limit).mockRejectedValueOnce(new Error('redis connection details'))
+    const response = await postDiff(requestWithBody(JSON.stringify({ oldDbml: 'Table old {}', newDbml: 'Table new {}' })))
+    expect(response.status).toBe(500)
+    expect(await response.json()).toEqual({ error: 'Unable to compare DBML schemas.' })
+  })
+
+  it('returns a generic 500 for unexpected errors without the internal message', async () => {
+    vi.spyOn(compareModule, 'compareSchemas').mockImplementationOnce(() => { throw new Error('internal parser details') })
+    const response = await postDiff(requestWithBody(JSON.stringify({ oldDbml: 'Table old {}', newDbml: 'Table new {}' })))
+    expect(response.status).toBe(500)
+    expect(await response.json()).toEqual({ error: 'Unable to compare DBML schemas.' })
+  })
+
   it('reports the expected fixture counts', () => {
     const result = JSON.parse(emitJson(diff(oldDbml, newDbml)))
     expect(result.tables.added).toHaveLength(1)

@@ -49,6 +49,25 @@ describe('POST /api/share', () => {
     vi.clearAllMocks()
   })
 
+  it('returns 400 for a null JSON body', async () => {
+    const response = await POST(new Request('http://localhost/api/share', { method: 'POST', headers: { 'content-type': 'application/json' }, body: 'null' }))
+    expect(response.status).toBe(400)
+    expect(await response.json()).toEqual({ error: 'Invalid JSON request.' })
+  })
+
+  it('returns 400 for malformed request JSON', async () => {
+    const response = await POST(new Request('http://localhost/api/share', { method: 'POST', body: '{' }))
+    expect(response.status).toBe(400)
+    expect(await response.json()).toEqual({ error: 'Invalid JSON request.' })
+  })
+
+  it('returns a generic 500 for storage failures without the internal message', async () => {
+    mockSet.mockRejectedValueOnce(new Error('redis secret details'))
+    const response = await share({ oldDbml, newDbml })
+    expect(response.status).toBe(500)
+    expect(await response.json()).toEqual({ error: 'Unable to create a share link.' })
+  })
+
   it('returns 413 when the compressed value exceeds the Redis limit', async () => {
     mockStoredBytes.mockReturnValueOnce(1024 * 1024 + 1)
 
