@@ -31,7 +31,7 @@ All diffing is done by the package. Never reimplement diff logic in the app.
 
 ## Branches, commits and pull requests
 - Every change has a GitHub issue. If none exists, create it first.
-- Branch from `main` with a `feature/`, `fix/` or `chore/` prefix matching the change type, then a short description (for example `fix/api-error-responses`).
+- Branch from `main` with a `feature/`, `fix/` or `chore/` prefix matching the change type, then a short description (for example `fix/api-error-responses`). Never commit to `main` directly. Use these prefixes even when your tool has its own default (for example `v0/`).
 - Commits use `type(scope): description`. The scope is required. Types: feat, fix, docs, refactor, test, chore, build, ci, perf, style. Subject line 72 characters or less.
 - The PR title uses the same format as a commit subject.
 - The PR body includes:
