@@ -33,7 +33,7 @@ or copy `.env.example` to `.env.local` and fill in your own values. `.env*.local
 pnpm test
 ```
 
-Vitest, run from the repo root (the tests read the `*.dbml` fixtures there).
+Vitest, run from the repo root. Tests read fixtures from `test/fixtures/`.
 
 | File | What it covers |
 |---|---|
@@ -42,13 +42,14 @@ Vitest, run from the repo root (the tests read the `*.dbml` fixtures there).
 
 ## Type checking
 
-`next.config.mjs` sets `typescript.ignoreBuildErrors`, so `pnpm build` does not type-check. Run it separately:
+The production build type-checks the application. Run the explicit checks separately when developing:
 
 ```sh
-pnpm exec tsc --noEmit
+pnpm lint
+pnpm typecheck
 ```
 
-There is no lint script or ESLint config.
+ESLint is configured in `eslint.config.mjs` and runs through `pnpm lint`.
 
 ## Preview deployments
 
