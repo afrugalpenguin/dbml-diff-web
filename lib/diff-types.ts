@@ -8,6 +8,7 @@ export type ColumnChange = {
 
 export type ColumnChanged = {
   column: ColumnChange
+  before?: ColumnChange
   changes: string[]
 }
 

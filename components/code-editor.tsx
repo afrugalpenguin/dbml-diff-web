@@ -50,9 +50,9 @@ const dbmlHighlighting = HighlightStyle.define([
   { tag: tags.variableName, color: '#e2e8f0' },
 ])
 
-const errorLineEffect = StateEffect.define<number | null>()
+export const errorLineEffect = StateEffect.define<number | null>()
 const focusLineEffect = StateEffect.define<number | null>()
-const errorLineField = StateField.define<DecorationSet>({
+export const errorLineField = StateField.define<DecorationSet>({
   create: () => Decoration.none,
   update(decorations, transaction) {
     decorations = decorations.map(transaction.changes)
@@ -118,6 +118,12 @@ export function CodeEditor({ label, value, onChange, errorLine, focusText }: Cod
     if (!view || value === view.state.doc.toString()) return
     view.dispatch({ changes: { from: 0, to: view.state.doc.length, insert: value } })
   }, [value])
+
+  useEffect(() => {
+    const view = viewRef.current
+    if (!view) return
+    view.dispatch({ effects: errorLineEffect.of(errorLine ?? null) })
+  }, [errorLine])
 
   useEffect(() => {
     const view = viewRef.current
