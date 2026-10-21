@@ -109,7 +109,7 @@ export function toFlow(
     id: table.name,
     type: 'table',
     position: positions.get(table.name) ?? { x: 0, y: 0 },
-    className: kindStyle[table.kind].node,
+    className: `rounded-md border-2 bg-card shadow-sm ${kindStyle[table.kind].node}`,
     data: { table, ...visibleColumns(table) },
   }))
   const edges = selection.refs.map((ref): RefEdge => {
