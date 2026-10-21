@@ -40,6 +40,7 @@ All diffing is done by the package. Never reimplement diff logic in the app.
   - What changed.
   - Tests: what was added, confirmation the new tests failed before the fix, and the commands run with their results.
 - Keep a PR to its issue. Report anything else you find instead of fixing it in the same PR.
+- Open the PR yourself, not under the maintainer's account, and request a review from @afrugalpenguin.
 - Do not merge pull requests. The maintainer reviews and merges.
 
 ## Style
