@@ -36,10 +36,12 @@ export function attentionItems(parsed: DiffResult): AttentionItem[] {
         ...table.columnsRemoved.map((column) => item(column.name, 'removed', `${table.name}.${column.name} removed in B. Dropping this column deletes its data.`)),
         ...table.columnsAdded.filter((column) => column.notNull).map((column) => item(column.name, 'added', `${table.name}.${column.name} added in B as NOT NULL. This fails on existing rows without a default.`)),
         ...table.columnsChanged.flatMap(({ column, before }) => {
-          if (!before || (before.type === column.type && before.notNull === column.notNull && before.pk === column.pk)) return [item(column.name, 'modified', `${table.name}.${column.name} changed in B. Review this column before migrating.`)]
+          // dbml-diff compares types case-insensitively, so int to INT is not a type change.
+          const typeChanged = before?.type?.toLowerCase() !== column.type?.toLowerCase()
+          if (!before || (!typeChanged && before.notNull === column.notNull && before.pk === column.pk)) return [item(column.name, 'modified', `${table.name}.${column.name} changed in B. Review this column before migrating.`)]
           const items = []
           if (before.notNull !== column.notNull && column.notNull) items.push(item(column.name, 'modified', `${table.name}.${column.name} is now NOT NULL. This fails if existing rows contain nulls; add a default or backfill first.`))
-          if (before.type !== column.type) items.push(item(column.name, 'modified', `${table.name}.${column.name} changes type from ${before.type ?? 'unknown'} to ${column.type ?? 'unknown'} in B. Existing values must convert; check for data loss.`))
+          if (typeChanged) items.push(item(column.name, 'modified', `${table.name}.${column.name} changes type from ${before.type ?? 'unknown'} to ${column.type ?? 'unknown'} in B. Existing values must convert; check for data loss.`))
           return items
         }),
         ...table.renames.map((rename) => item(rename.from.name, 'renamed', `${rename.from.name} -> ${rename.to.name} looks like a rename. Confirm it before running the migration.`)),
