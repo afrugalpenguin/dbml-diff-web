@@ -45,7 +45,7 @@ describe('Summary', () => {
     const parsed = JSON.parse(emitJson(diff(enumRefOld, enumRefNew)))
     const text = summaryText(parsed)
     expect(text).toContain('~ modified dbo.Status (pending, active, archived)')
-    expect(text).toContain('~Orders.user_id→Accounts.id (was Users.id)')
+    expect(text).toContain('Orders~user_id\u2192Accounts.id (was Users.id)')
   })
 
   it('renders group membership changes', () => {
@@ -72,7 +72,7 @@ describe('Summary', () => {
     const parsed = JSON.parse(emitJson(diff(refAddRemoveOld, refAddRemoveNew)))
     expect(parsed.refs.unresolved).toHaveLength(0)
     const text = summaryText(parsed)
-    expect(text).toContain('+Child.id→Other.id')
-    expect(text).toContain('-Child.parent_id→Parent.id')
+    expect(text).toContain('Child+id\u2192Other.id')
+    expect(text).toContain('-parent_id\u2192Parent.id')
   })
 })
