@@ -14,7 +14,8 @@ type CodeEditorProps = {
   value: string
   onChange: (value: string) => void
   errorLine?: number
-  focusText?: string
+  // A new key flashes the line again when the same line is focused twice.
+  focusLine?: { line: number; key: number }
 }
 
 const typePattern = new RegExp(
@@ -84,7 +85,7 @@ export const errorLineField = StateField.define<DecorationSet>({
 
 type DecorationSet = ReturnType<typeof Decoration.set>
 
-export function CodeEditor({ label, value, onChange, errorLine, focusText }: CodeEditorProps) {
+export function CodeEditor({ label, value, onChange, errorLine, focusLine }: CodeEditorProps) {
   const hostRef = useRef<HTMLDivElement>(null)
   const viewRef = useRef<EditorView | null>(null)
   const onChangeRef = useRef(onChange)
@@ -140,15 +141,12 @@ export function CodeEditor({ label, value, onChange, errorLine, focusText }: Cod
   useEffect(() => {
     const view = viewRef.current
     if (!view) return
-    const lineNumber = focusText
-      ? Array.from({ length: view.state.doc.lines }, (_, index) => index + 1).find((number) => view.state.doc.line(number).text.includes(focusText))
-      : undefined
     view.dispatch({ effects: focusLineEffect.of(null) })
-    if (lineNumber) {
-      const line = view.state.doc.line(lineNumber)
-      view.dispatch({ effects: [focusLineEffect.of(lineNumber), EditorView.scrollIntoView(line.from, { y: 'center' })] })
+    if (focusLine && focusLine.line <= view.state.doc.lines) {
+      const line = view.state.doc.line(focusLine.line)
+      view.dispatch({ effects: [focusLineEffect.of(focusLine.line), EditorView.scrollIntoView(line.from, { y: 'center' })] })
     }
-  }, [focusText])
+  }, [focusLine])
 
   return <><div className={editorFrameClass}>
     <div className="flex items-center justify-between border-b border-border bg-muted/40 px-5 py-3 text-sm font-semibold">

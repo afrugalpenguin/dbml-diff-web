@@ -23,6 +23,8 @@ A Next.js 16 App Router app (React 19, Tailwind CSS 4, shadcn, CodeMirror 6). Al
 6. The response contains both schemas, every output format, the parsed JSON result (`parsedResult`), counts, a timestamp and a random id. Nothing is written to storage.
 7. The browser keeps the response in memory and renders it.
 
+Clicking a "Needs attention" item jumps to its Summary row and highlights its line in the editor it belongs to: Schema A for a removed table or column, Schema B for everything else. Each item carries a structured focus (schema, table, column), and `findDbmlLine()` (`lib/dbml-locate.ts`) finds that table's block in the current editor text, then the column inside it. If the line is no longer there, for example after an edit, nothing is highlighted.
+
 ### Share
 
 The Share button is temporarily hidden, so the browser does not currently call this route. The route and existing share links still work.
@@ -48,6 +50,7 @@ The Share button is temporarily hidden, so the browser does not currently call t
 | `components/summary/` | The `Summary` component and its sections: toolbar, Needs attention, tables, groups, enums, refs and legend. |
 | `lib/summary-groups.ts` | Summary grouping and display helpers: table change entries, grouping by schema, group moves, enum and ref rows, shared schema prefix. |
 | `lib/summary-changes.ts` | Summary logic built from structured change records: "Needs attention" items, table detail rows, change kinds with their symbols and colours, and the stable target ids (table, column, change kind) that jump-to highlighting compares. |
+| `lib/dbml-locate.ts` | `findDbmlLine()`: the line of a table, or of a column inside its own table block, in DBML text. Used to focus the editor from a "Needs attention" item. |
 | `app/api/diff/route.ts` | Compare endpoint and the unclosed-block pre-check. |
 | `lib/compare.ts` | `compareSchemas()`: runs dbml-diff and all emitters, and attributes parser errors to a schema. Used by `/api/diff` and `/api/share`. |
 | `lib/api-errors.ts` | `parserErrorResponse()`: turns a parser diagnostic into a 400 response. |
@@ -57,7 +60,7 @@ The Share button is temporarily hidden, so the browser does not currently call t
 | `app/c/[id]/page.tsx` | Shared comparison page. |
 | `lib/share-validation.ts` | Share id format and stored comparison shape checks for `/c/[id]`. |
 | `app/layout.tsx` | Root layout, metadata, Vercel Analytics and Speed Insights. |
-| `components/code-editor.tsx` | CodeMirror editor with a small DBML syntax highlighter. |
+| `components/code-editor.tsx` | CodeMirror editor with a small DBML syntax highlighter, and the error and focus line highlights. |
 | `lib/diff-types.ts` | TypeScript types for the dbml-diff JSON result and the comparison payload. |
 | `lib/limits.ts` | `MAX_SCHEMA_BYTES` (shared by browser and server). |
 | `lib/request-limits.ts` | Rate limiters (per validated client IP, and a stricter shared bucket without one), UTF-8 byte counting. |

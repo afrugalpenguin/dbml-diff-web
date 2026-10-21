@@ -33,7 +33,7 @@ or copy `.env.example` to `.env.local` and fill in your own values. `.env*.local
 pnpm test
 ```
 
-Vitest, run from the repo root. Tests read fixtures from `test/fixtures/`.
+Vitest, run from the repo root. Tests read fixtures from `test/fixtures/`. Most tests run in Node; the ones that click or mount components start with `// @vitest-environment jsdom`.
 
 | File | What it covers |
 |---|---|
@@ -43,7 +43,10 @@ Vitest, run from the repo root. Tests read fixtures from `test/fixtures/`.
 | `app/summary.test.ts` | `Summary` rendering for the fixture schemas: tables, enums, refs and groups, and change card colours by change kind. |
 | `app/summary-attention.test.ts` | "Needs attention" items built from structured column changes. |
 | `components/code-editor.test.ts` | The editor error-line decoration. |
-| `lib/*.test.ts` | Request body limits, rate limit buckets, share validation and request body, the structured before values in `compareSchemas()`, and the Summary's change targets (each attention item highlights exactly one row). |
+| `components/code-editor-focus.test.tsx` | The editor focus line, mounted in jsdom. |
+| `components/comparison-result.test.tsx` | The result tabs: each shows its output, and Migration has the SQL heading. |
+| `components/summary/summary.test.tsx` | Clicking a "Needs attention" item reports its editor focus to the page (jsdom). |
+| `lib/*.test.ts` | Request body limits, rate limit buckets, share validation and request body, the structured before values in `compareSchemas()`, the Summary's change targets (each attention item highlights exactly one row) and editor focus, and the DBML line lookup. |
 | `next.config.test.ts` | Security headers and build type checking. |
 | `source-lines.test.ts` | No line in `app/`, `components/` or `lib/` is longer than 160 characters. |
 
