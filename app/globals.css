@@ -45,6 +45,15 @@
   --radius-4xl: calc(var(--radius) * 2.6);
 }
 
+html { scroll-behavior: smooth; }
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+.summary-flash-row { animation: summary-row-flash 1.5s ease-out; scroll-margin-top: 7rem; }
+.summary-flash-line { animation: summary-line-flash 1.5s ease-out; }
+@keyframes summary-row-flash { 0% { background-color: rgba(245, 158, 11, 0.42); } 100% { background-color: transparent; } }
+@keyframes summary-line-flash { 0% { background-color: rgba(245, 158, 11, 0.5); } 100% { background-color: transparent; } }
+@media (prefers-reduced-motion: reduce) { .summary-flash-row, .summary-flash-line { animation: none; background-color: rgba(245, 158, 11, 0.28); } }
+@keyframes cm-focus-flash { 0%, 100% { background-color: rgba(251, 191, 36, 0.2); } 50% { background-color: rgba(251, 191, 36, 0.58); } }
+
 :root {
   color-scheme: light;
   --background: oklch(1 0 0);

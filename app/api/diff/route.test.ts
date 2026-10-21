@@ -94,14 +94,14 @@ describe('/api/diff comparison contract', () => {
     const parsed = JSON.parse(emitJson(diff(enumRefOld, enumRefNew)))
     const markup = renderToStaticMarkup(createElement(Summary, { parsed, counts: parsed.counts }))
     expect(markup.replace(/<[^>]+>/g, '')).toContain('~ modified dbo.Status (pending, active, archived)')
-    expect(markup.replace(/<[^>]+>/g, '')).toContain('~Orders.user_id→Accounts.id (was Users.id)')
+    expect(markup.replace(/<[^>]+>/g, '')).toContain('Orders~user_id→Accounts.id (was Users.id)')
   })
 
   it('renders added and removed refs in the summary', () => {
     const parsed = JSON.parse(emitJson(diff(refAddRemoveOld, refAddRemoveNew)))
     const text = renderToStaticMarkup(createElement(Summary, { parsed, counts: parsed.counts })).replace(/<[^>]+>/g, '')
-    expect(text).toContain('+Child.id→Other.id')
-    expect(text).toContain('-Child.parent_id→Parent.id')
+    expect(text).toContain('Child+id→Other.id')
+    expect(text).toContain('-parent_id→Parent.id')
     expect(parsed.refs.unresolved).toHaveLength(0)
   })
 

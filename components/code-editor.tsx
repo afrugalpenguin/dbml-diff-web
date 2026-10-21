@@ -130,7 +130,7 @@ export function CodeEditor({ label, value, onChange, errorLine, focusText }: Cod
     }
   }, [focusText])
 
-  return <><style>{'@keyframes cm-focus-flash { 0%, 100% { background-color: rgba(251, 191, 36, 0.2); } 50% { background-color: rgba(251, 191, 36, 0.58); } }'}</style><div className="flex h-[570px] flex-1 flex-col overflow-hidden rounded-md border border-border bg-card shadow-sm focus-within:ring-2 focus-within:ring-ring">
+  return <><div className="flex h-[570px] flex-1 flex-col overflow-hidden rounded-md border border-border bg-card shadow-sm focus-within:ring-2 focus-within:ring-ring">
     <div className="flex items-center justify-between border-b border-border bg-muted/40 px-5 py-3 text-sm font-semibold"><span>{label}</span><span className="font-mono text-xs text-muted-foreground">DBML</span></div>
     <div ref={hostRef} aria-label={`${label} DBML`} className="h-[520px] overflow-hidden" />
   </div></> 
