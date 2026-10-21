@@ -36,7 +36,8 @@ export async function POST(request: Request) {
     if (storedBytes > MAX_REDIS_VALUE_BYTES) {
       return Response.json({ error: 'This comparison is too large to share. It is still available on screen.' }, { status: 413 })
     }
-    await new Redis({ url: process.env.KV_REST_API_URL ?? '', token: process.env.KV_REST_API_TOKEN ?? '' }).set(`comparison:${comparison.id}`, stored, { ex: 60 * 60 * 24 * 30 })
+    const redis = new Redis({ url: process.env.KV_REST_API_URL ?? '', token: process.env.KV_REST_API_TOKEN ?? '' })
+    await redis.set(`comparison:${comparison.id}`, stored, { ex: 60 * 60 * 24 * 30 })
     return Response.json({ id: comparison.id, storedBytes })
   } catch (error) {
     return parserErrorResponse(error, 'new') ?? Response.json({ error: 'Unable to create a share link.' }, { status: 500 })

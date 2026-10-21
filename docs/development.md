@@ -45,6 +45,7 @@ Vitest, run from the repo root. Tests read fixtures from `test/fixtures/`.
 | `components/code-editor.test.ts` | The editor error-line decoration. |
 | `lib/*.test.ts` | Request body limits, rate limit buckets, share validation and request body, the structured before values in `compareSchemas()`, and the Summary's change targets (each attention item highlights exactly one row). |
 | `next.config.test.ts` | Security headers and build type checking. |
+| `source-lines.test.ts` | No line in `app/`, `components/` or `lib/` is longer than 160 characters. |
 
 ## Type checking
 

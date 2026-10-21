@@ -11,7 +11,8 @@ function parserDiagnostic(error: unknown): Diagnostic | undefined {
 
 export function parserErrorResponse(error: unknown, fallbackSchema: 'old' | 'new') {
   const diagnostic = parserDiagnostic(error)
-  const schema = typeof error === 'object' && error !== null && 'schema' in error && ((error as { schema?: unknown }).schema === 'old' || (error as { schema?: unknown }).schema === 'new')
+  const tagged = typeof error === 'object' && error !== null && 'schema' in error ? (error as { schema?: unknown }).schema : undefined
+  const schema = tagged === 'old' || tagged === 'new'
     ? (error as { schema: 'old' | 'new' }).schema
     : fallbackSchema
   if (!diagnostic) return undefined
