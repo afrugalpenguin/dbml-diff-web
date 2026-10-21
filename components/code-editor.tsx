@@ -50,9 +50,9 @@ const dbmlHighlighting = HighlightStyle.define([
   { tag: tags.variableName, color: '#e2e8f0' },
 ])
 
-const errorLineEffect = StateEffect.define<number | null>()
+export const errorLineEffect = StateEffect.define<number | null>()
 const focusLineEffect = StateEffect.define<number | null>()
-const errorLineField = StateField.define<DecorationSet>({
+export const errorLineField = StateField.define<DecorationSet>({
   create: () => Decoration.none,
   update(decorations, transaction) {
     decorations = decorations.map(transaction.changes)

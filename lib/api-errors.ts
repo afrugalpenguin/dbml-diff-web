@@ -16,7 +16,7 @@ export function parserErrorResponse(error: unknown, fallbackSchema: 'old' | 'new
     : fallbackSchema
   if (!diagnostic) return undefined
   return Response.json({
-    error: diagnostic.message ?? 'The DBML schema is invalid.',
+    error: `${schema === 'old' ? 'Schema A' : 'Schema B'}: ${diagnostic.message ?? 'The DBML schema is invalid.'}`,
     diagnostic: {
       schema,
       line: diagnostic.location?.start?.line,
