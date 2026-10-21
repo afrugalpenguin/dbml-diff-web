@@ -17,6 +17,15 @@ type CodeEditorProps = {
   focusText?: string
 }
 
+const typePattern = new RegExp(
+  '^(?:int|integer|bigint|smallint|tinyint|decimal|numeric|float|real|double|boolean|bool|date|datetime|timestamp|time|uuid|' +
+    'varchar|nvarchar|char|text|json|jsonb|blob|binary)\\b',
+  'i',
+)
+const editorFrameClass =
+  'flex h-[570px] flex-1 flex-col overflow-hidden rounded-md border border-border bg-card shadow-sm ' +
+  'focus-within:ring-2 focus-within:ring-ring'
+
 const dbmlLanguage = StreamLanguage.define({
   startState: () => ({ context: '', inString: false }),
   token(stream, state: { context: string; inString: boolean }) {
@@ -32,7 +41,7 @@ const dbmlLanguage = StreamLanguage.define({
     }
     if (stream.match(/^\[(?:[^\]]+)\]/)) return 'bracket'
     if (stream.match(/^(?:TABLE|Table|REF|Ref|ENUM|Enum|TABLEGROUP|TableGroup|INDEXES|Indexes|NOTE|Note)\b/)) return 'keyword'
-    if (stream.match(/^(?:int|integer|bigint|smallint|tinyint|decimal|numeric|float|real|double|boolean|bool|date|datetime|timestamp|time|uuid|varchar|nvarchar|char|text|json|jsonb|blob|binary)\b/i)) return 'type'
+    if (stream.match(typePattern)) return 'type'
     if (stream.match(/^\d+(?:\.\d+)?/)) return 'number'
     if (stream.match(/^[A-Za-z_][\w$.-]*/)) return state.context ? 'variable' : 'variable-2'
     stream.next()
@@ -131,7 +140,9 @@ export function CodeEditor({ label, value, onChange, errorLine, focusText }: Cod
   useEffect(() => {
     const view = viewRef.current
     if (!view) return
-    const lineNumber = focusText ? Array.from({ length: view.state.doc.lines }, (_, index) => index + 1).find((number) => view.state.doc.line(number).text.includes(focusText)) : undefined
+    const lineNumber = focusText
+      ? Array.from({ length: view.state.doc.lines }, (_, index) => index + 1).find((number) => view.state.doc.line(number).text.includes(focusText))
+      : undefined
     view.dispatch({ effects: focusLineEffect.of(null) })
     if (lineNumber) {
       const line = view.state.doc.line(lineNumber)
@@ -139,8 +150,10 @@ export function CodeEditor({ label, value, onChange, errorLine, focusText }: Cod
     }
   }, [focusText])
 
-  return <><div className="flex h-[570px] flex-1 flex-col overflow-hidden rounded-md border border-border bg-card shadow-sm focus-within:ring-2 focus-within:ring-ring">
-    <div className="flex items-center justify-between border-b border-border bg-muted/40 px-5 py-3 text-sm font-semibold"><span>{label}</span><span className="font-mono text-xs text-muted-foreground">DBML</span></div>
+  return <><div className={editorFrameClass}>
+    <div className="flex items-center justify-between border-b border-border bg-muted/40 px-5 py-3 text-sm font-semibold">
+      <span>{label}</span><span className="font-mono text-xs text-muted-foreground">DBML</span>
+    </div>
     <div ref={hostRef} aria-label={`${label} DBML`} className="h-[520px] overflow-hidden" />
   </div></> 
 }

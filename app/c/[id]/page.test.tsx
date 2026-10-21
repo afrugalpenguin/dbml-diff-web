@@ -10,7 +10,8 @@ vi.mock('@upstash/redis', () => ({ Redis: class { get = get } }))
 vi.mock('next/navigation', () => ({ notFound }))
 
 const valid = {
-  id: 'Abcdef1234', oldDbml: 'Table A {}', newDbml: 'Table A {}', createdAt: '2026-01-02T00:00:00.000Z', parsedResult: {}, text: 'diff text', migration: '', dbml: '',
+  id: 'Abcdef1234', oldDbml: 'Table A {}', newDbml: 'Table A {}', createdAt: '2026-01-02T00:00:00.000Z',
+  parsedResult: {}, text: 'diff text', migration: '', dbml: '',
 }
 
 describe('shared comparison page', () => {

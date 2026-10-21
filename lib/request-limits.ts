@@ -10,8 +10,16 @@ export const RATE_LIMIT_WINDOW = '1 m'
 
 const redis = new Redis({ url: process.env.KV_REST_API_URL ?? '', token: process.env.KV_REST_API_TOKEN ?? '' })
 export { MAX_SCHEMA_BYTES }
-export const apiRateLimit = new Ratelimit({ redis, limiter: Ratelimit.slidingWindow(RATE_LIMIT_REQUESTS, RATE_LIMIT_WINDOW), prefix: 'dbml-diff:rate' })
-export const missingIpRateLimit = new Ratelimit({ redis, limiter: Ratelimit.slidingWindow(MISSING_IP_RATE_LIMIT_REQUESTS, RATE_LIMIT_WINDOW), prefix: 'dbml-diff:rate:missing-ip' })
+export const apiRateLimit = new Ratelimit({
+  redis,
+  limiter: Ratelimit.slidingWindow(RATE_LIMIT_REQUESTS, RATE_LIMIT_WINDOW),
+  prefix: 'dbml-diff:rate',
+})
+export const missingIpRateLimit = new Ratelimit({
+  redis,
+  limiter: Ratelimit.slidingWindow(MISSING_IP_RATE_LIMIT_REQUESTS, RATE_LIMIT_WINDOW),
+  prefix: 'dbml-diff:rate:missing-ip',
+})
 
 export function requestIp(request: Request) {
   const value = ipAddress(request)

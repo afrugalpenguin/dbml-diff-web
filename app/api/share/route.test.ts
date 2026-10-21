@@ -50,7 +50,8 @@ describe('POST /api/share', () => {
   })
 
   it('returns 413 before reading an oversized declared body', async () => {
-    const response = await POST(new Request('http://localhost/api/share', { method: 'POST', headers: { 'content-type': 'application/json', 'content-length': String(2 * 1024 * 1024 + 1) }, body: '{}' }))
+    const headers = { 'content-type': 'application/json', 'content-length': String(2 * 1024 * 1024 + 1) }
+    const response = await POST(new Request('http://localhost/api/share', { method: 'POST', headers, body: '{}' }))
     expect(response.status).toBe(413)
     expect(await response.json()).toEqual({ error: 'Request is too large.' })
     expect(mockSet).not.toHaveBeenCalled()

@@ -60,7 +60,8 @@ describe('/api/diff route contract', () => {
   })
 
   it('returns 413 before reading an oversized declared body', async () => {
-    const response = await postDiff(new Request('http://localhost/api/diff', { method: 'POST', headers: { 'content-type': 'application/json', 'content-length': String(2 * 1024 * 1024 + 1) }, body: '{}' }))
+    const headers = { 'content-type': 'application/json', 'content-length': String(2 * 1024 * 1024 + 1) }
+    const response = await postDiff(new Request('http://localhost/api/diff', { method: 'POST', headers, body: '{}' }))
     expect(response.status).toBe(413)
     expect(await response.json()).toEqual({ error: 'Request is too large.' })
   })

@@ -10,7 +10,8 @@ describe('share validation', () => {
   })
 
   it('validates a complete stored comparison', () => {
-    expect(decodeStoredComparison({ id: 'Abc123_-XY', oldDbml: '', newDbml: '', createdAt: '2026-01-01T00:00:00.000Z', parsedResult: {}, text: '', migration: '', dbml: '' })).not.toBeNull()
+    const stored = { id: 'Abc123_-XY', oldDbml: '', newDbml: '', createdAt: '2026-01-01T00:00:00.000Z', parsedResult: {}, text: '', migration: '', dbml: '' }
+    expect(decodeStoredComparison(stored)).not.toBeNull()
   })
 
   it.each([
