@@ -6,7 +6,8 @@ import * as compareModule from '../../../lib/compare'
 vi.mock('../../../lib/request-limits', () => ({
   MAX_SCHEMA_BYTES: 500 * 1024,
   apiRateLimit: { limit: vi.fn().mockResolvedValue({ success: true }) },
-  requestIp: vi.fn(() => 'test'),
+  missingIpRateLimit: { limit: vi.fn().mockResolvedValue({ success: true }) },
+  rateLimitForRequest: vi.fn().mockResolvedValue({ success: true }),
   utf8Bytes: (value: string) => new TextEncoder().encode(value).byteLength,
 }))
 
@@ -76,8 +77,24 @@ describe('/api/diff route contract', () => {
     expect(await response.json()).toEqual({ error: 'Invalid JSON request.' })
   })
 
+  it('attributes Schema A parser errors to old', async () => {
+    const response = await postDiff(requestWithBody(JSON.stringify({ oldDbml: 'Table t {\n  id int [pk\n}', newDbml: 'Table t { id int }' })))
+    const payload = await response.json()
+    expect(response.status).toBe(400)
+    expect(payload.diagnostic).toEqual({ schema: 'old', line: 3, column: 1 })
+    expect(payload.error).toMatch(/^Schema A: /)
+  })
+
+  it('attributes Schema B parser errors to new', async () => {
+    const response = await postDiff(requestWithBody(JSON.stringify({ oldDbml: 'Table t { id int }', newDbml: 'Table t {\n  id int [pk\n}' })))
+    const payload = await response.json()
+    expect(response.status).toBe(400)
+    expect(payload.diagnostic).toEqual({ schema: 'new', line: 3, column: 1 })
+    expect(payload.error).toMatch(/^Schema B: /)
+  })
+
   it('returns parser diagnostics without exposing internal errors', async () => {
-    const response = await postDiff(requestWithBody(JSON.stringify({ oldDbml: 'Table old {}', newDbml: 'Table broken { }' })))
+    const response = await postDiff(requestWithBody(JSON.stringify({ oldDbml: 'Table old { id int }', newDbml: 'Table broken { }' })))
     const payload = await response.json()
     expect(response.status).toBe(400)
     expect(payload.error).toEqual(expect.any(String))
@@ -87,7 +104,7 @@ describe('/api/diff route contract', () => {
 
   it('hides rate limiter errors from clients', async () => {
     const requestLimits = await import('../../../lib/request-limits')
-    vi.mocked(requestLimits.apiRateLimit.limit).mockRejectedValueOnce(new Error('redis connection details'))
+    vi.mocked(requestLimits.rateLimitForRequest).mockRejectedValueOnce(new Error('redis connection details'))
     const response = await postDiff(requestWithBody(JSON.stringify({ oldDbml: 'Table old {}', newDbml: 'Table new {}' })))
     expect(response.status).toBe(500)
     expect(await response.json()).toEqual({ error: 'Unable to compare DBML schemas.' })

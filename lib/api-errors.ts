@@ -9,11 +9,14 @@ function parserDiagnostic(error: unknown): Diagnostic | undefined {
   return Array.isArray(diags) && diags[0] && typeof diags[0] === 'object' ? diags[0] as Diagnostic : undefined
 }
 
-export function parserErrorResponse(error: unknown, schema: 'old' | 'new') {
+export function parserErrorResponse(error: unknown, fallbackSchema: 'old' | 'new') {
   const diagnostic = parserDiagnostic(error)
+  const schema = typeof error === 'object' && error !== null && 'schema' in error && ((error as { schema?: unknown }).schema === 'old' || (error as { schema?: unknown }).schema === 'new')
+    ? (error as { schema: 'old' | 'new' }).schema
+    : fallbackSchema
   if (!diagnostic) return undefined
   return Response.json({
-    error: diagnostic.message ?? 'The DBML schema is invalid.',
+    error: `${schema === 'old' ? 'Schema A' : 'Schema B'}: ${diagnostic.message ?? 'The DBML schema is invalid.'}`,
     diagnostic: {
       schema,
       line: diagnostic.location?.start?.line,
