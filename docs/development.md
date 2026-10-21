@@ -33,7 +33,7 @@ or copy `.env.example` to `.env.local` and fill in your own values. `.env*.local
 pnpm test
 ```
 
-Vitest, run from the repo root. Tests read fixtures from `test/fixtures/`.
+Vitest, run from the repo root (the tests read the `*.dbml` fixtures there).
 
 | File | What it covers |
 |---|---|
