@@ -3,6 +3,7 @@ import { nanoid } from 'nanoid'
 import { compareSchemas } from '../../../lib/compare'
 import { encodeComparison, MAX_REDIS_VALUE_BYTES, storedComparisonBytes } from '../../../lib/share-storage'
 import { apiRateLimit, MAX_SCHEMA_BYTES, requestIp, utf8Bytes } from '../../../lib/request-limits'
+import { parserErrorResponse } from '../../../lib/api-errors'
 
 export const runtime = 'nodejs'
 
@@ -11,7 +12,12 @@ export async function POST(request: Request) {
     const limit = await apiRateLimit.limit(`share:${requestIp(request)}`)
     if (!limit.success) return Response.json({ error: 'Rate limit exceeded. Please try again in a minute.' }, { status: 429 })
 
-    const body = await request.json()
+    let body: Record<string, unknown>
+    try {
+      body = await request.json()
+    } catch {
+      return Response.json({ error: 'Invalid JSON request.' }, { status: 400 })
+    }
     const oldDbml = typeof body.oldDbml === 'string' ? body.oldDbml : ''
     const newDbml = typeof body.newDbml === 'string' ? body.newDbml : ''
     if (utf8Bytes(oldDbml) > MAX_SCHEMA_BYTES || utf8Bytes(newDbml) > MAX_SCHEMA_BYTES) {
@@ -34,7 +40,7 @@ export async function POST(request: Request) {
     }
     await new Redis({ url: process.env.KV_REST_API_URL ?? '', token: process.env.KV_REST_API_TOKEN ?? '' }).set(`comparison:${comparison.id}`, stored, { ex: 60 * 60 * 24 * 30 })
     return Response.json({ id: comparison.id, storedBytes })
-  } catch {
-    return Response.json({ error: 'Unable to create a share link.' }, { status: 400 })
+  } catch (error) {
+    return parserErrorResponse(error, 'new') ?? Response.json({ error: 'Unable to create a share link.' }, { status: 500 })
   }
 }

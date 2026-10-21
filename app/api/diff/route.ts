@@ -1,6 +1,7 @@
 import { nanoid } from 'nanoid'
 import { apiRateLimit, MAX_SCHEMA_BYTES, requestIp, utf8Bytes } from '../../../lib/request-limits'
 import { compareSchemas } from '../../../lib/compare'
+import { parserErrorResponse } from '../../../lib/api-errors'
 
 export const runtime = 'nodejs'
 
@@ -37,7 +38,12 @@ export async function POST(request: Request) {
     const limit = await apiRateLimit.limit(`diff:${requestIp(request)}`)
     if (!limit.success) return Response.json({ error: 'Rate limit exceeded. Please try again in a minute.' }, { status: 429 })
 
-    const body = await request.json()
+    let body: Record<string, unknown>
+    try {
+      body = await request.json()
+    } catch {
+      return Response.json({ error: 'Invalid JSON request.' }, { status: 400 })
+    }
     oldDbml = typeof body.oldDbml === 'string' ? body.oldDbml : ''
     newDbml = typeof body.newDbml === 'string' ? body.newDbml : ''
     if (utf8Bytes(oldDbml) > MAX_SCHEMA_BYTES || utf8Bytes(newDbml) > MAX_SCHEMA_BYTES) {
@@ -64,21 +70,6 @@ export async function POST(request: Request) {
     }
     return Response.json({ ...comparison, parsedResult: output.parsedResult })
   } catch (error) {
-    const diagnostic = typeof error === 'object' && error !== null && 'diags' in error
-      ? (error as { diags?: Array<{ message?: string; location?: { start?: { line?: number; column?: number } } }> }).diags?.[0]
-      : undefined
-    const message = diagnostic?.message
-      ?? (error instanceof SyntaxError && error.message.includes('Unexpected end of JSON input')
-        ? 'The schema comparison could not be serialized. Check both schemas for invalid DBML syntax.'
-        : error instanceof Error ? error.message : 'Unable to compare DBML schemas.')
-    const parserLine = diagnostic?.location?.start?.line
-    return Response.json({
-      error: message,
-      diagnostic: diagnostic ? {
-        schema: 'new',
-        line: parserLine,
-        column: diagnostic.location?.start?.column,
-      } : undefined,
-    }, { status: 400 })
+    return parserErrorResponse(error, 'new') ?? Response.json({ error: 'Unable to compare DBML schemas.' }, { status: 500 })
   }
 }
