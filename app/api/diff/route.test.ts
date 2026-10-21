@@ -35,7 +35,7 @@ describe('/api/diff route contract', () => {
 
   it('returns 429 when the rate limit is exceeded', async () => {
     const requestLimits = await import('../../../lib/request-limits')
-    vi.mocked(requestLimits.apiRateLimit.limit).mockResolvedValueOnce({ success: false } as never)
+    vi.mocked(requestLimits.rateLimitForRequest).mockResolvedValueOnce({ success: false } as never)
     const response = await postDiff(requestWithBody(JSON.stringify({ oldDbml, newDbml })))
     expect(response.status).toBe(429)
     expect(await response.json()).toEqual({ error: 'Rate limit exceeded. Please try again in a minute.' })
