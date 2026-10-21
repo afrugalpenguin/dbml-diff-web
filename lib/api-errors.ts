@@ -15,8 +15,13 @@ export function parserErrorResponse(error: unknown, fallbackSchema: 'old' | 'new
     ? (error as { schema: 'old' | 'new' }).schema
     : fallbackSchema
   if (!diagnostic) return undefined
+  const label = schema === 'old' ? 'Schema A' : 'Schema B'
+  // Runtime failures inside the parser, such as a stack overflow, arrive as diagnostics without a location.
+  if (diagnostic.location?.start?.line === undefined) {
+    return Response.json({ error: `${label} could not be parsed.`, diagnostic: { schema } }, { status: 400 })
+  }
   return Response.json({
-    error: `${schema === 'old' ? 'Schema A' : 'Schema B'}: ${diagnostic.message ?? 'The DBML schema is invalid.'}`,
+    error: `${label}: ${diagnostic.message ?? 'The DBML schema is invalid.'}`,
     diagnostic: {
       schema,
       line: diagnostic.location?.start?.line,

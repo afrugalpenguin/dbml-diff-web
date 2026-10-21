@@ -29,7 +29,8 @@ Identified requests use 30 requests per minute per validated client IP. Requests
 
 - The application code has no `console` calls and no logging library.
 - Every route handler catches its own errors and returns a JSON error, so request bodies are not passed to the framework's error logging.
-- Error messages from the DBML parser are returned to the browser in the response, not logged.
+- Syntax errors from the DBML parser are returned to the browser with their message, line and column, and are not logged.
+- A parser diagnostic without a location is a runtime failure inside the parser (for example, very deeply nested input can exceed the call stack), not a syntax error. Its message is not returned. The response is 400 `Schema A could not be parsed.` or `Schema B could not be parsed.`, because the input caused it, with only the schema in `diagnostic`.
 - Vercel's platform request logs (method, path, status, timing) still apply. They do not include request bodies.
 - When the Redis environment variables are missing, the Upstash client logs a warning about the missing config. It does not log request data.
 
