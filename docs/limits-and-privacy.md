@@ -7,7 +7,7 @@
 | Each schema | 500 KB (512,000 bytes, UTF-8) | Browser before sending, and again on the server in `/api/diff` and `/api/share` | 413 `Each schema must be 500 KB or smaller.` |
 | Stored share | 1 MiB after gzip + base64 encoding | `/api/share` | 413 `This comparison is too large to share. It is still available on screen.` |
 
-The server parses the JSON request body before checking schema sizes, so the outer bound on request size is the Vercel request body limit.
+The server caps each JSON request body at 2 MiB before parsing. This bounds memory and parsing work while leaving room for JSON escaping and request overhead around two 500 KB schemas. Oversized requests return 413 `Request is too large.`; the per-schema checks still return 413 `Each schema must be 500 KB or smaller.`
 
 ## Rate limits
 

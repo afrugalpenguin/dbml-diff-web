@@ -34,13 +34,19 @@ describe('readBoundedJson', () => {
     expect(stream.pulls).toBeLessThan(3)
   })
 
+  it('ignores an understated content length and still enforces the cap', async () => {
+    const stream = streamingRequest([new Uint8Array(MAX_REQUEST_BODY_BYTES), bytes('more')], { 'content-length': '10' })
+    await expect(readBoundedJson(stream.request)).rejects.toBeInstanceOf(RequestBodyTooLargeError)
+    expect(stream.pulls).toBeLessThan(3)
+  })
+
   it('ignores malformed content length and parses valid JSON', async () => {
     const stream = streamingRequest([bytes('{"ok":true}')], { 'content-length': '-1' })
     await expect(readBoundedJson(stream.request)).resolves.toEqual({ ok: true })
   })
 
   it('accepts a near-limit escaped JSON body', async () => {
-    const schema = '"\\\\\"\\n"'.repeat(40_000)
+    const schema = '"\\\\\"\\n"'.repeat(80_000)
     const stream = streamingRequest([bytes(JSON.stringify({ oldDbml: schema, newDbml: schema }))])
     await expect(readBoundedJson(stream.request)).resolves.toEqual({ oldDbml: schema, newDbml: schema })
   })

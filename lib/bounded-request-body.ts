@@ -45,8 +45,22 @@ export async function readBoundedJson(request: Request): Promise<unknown> {
     reader.releaseLock()
   }
 
-  const body = new TextDecoder().decode(concat(chunks, total))
-  return JSON.parse(body)
+  return JSON.parse(new TextDecoder().decode(concat(chunks, total)))
+}
+
+export async function readJsonRequest(request: Request): Promise<{ body: Record<string, unknown> } | { response: Response }> {
+  try {
+    const parsedBody = await readBoundedJson(request)
+    if (!parsedBody || typeof parsedBody !== 'object' || Array.isArray(parsedBody)) {
+      return { response: Response.json({ error: 'Invalid JSON request.' }, { status: 400 }) }
+    }
+    return { body: parsedBody as Record<string, unknown> }
+  } catch (error) {
+    if (error instanceof RequestBodyTooLargeError) {
+      return { response: Response.json({ error: 'Request is too large.' }, { status: 413 }) }
+    }
+    return { response: Response.json({ error: 'Invalid JSON request.' }, { status: 400 }) }
+  }
 }
 
 function concat(chunks: Uint8Array[], total: number) {
