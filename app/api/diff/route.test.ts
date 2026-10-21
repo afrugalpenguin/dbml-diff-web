@@ -93,6 +93,14 @@ describe('/api/diff route contract', () => {
     expect(payload.error).toMatch(/^Schema B: /)
   })
 
+  it('hides parser stack overflow messages from clients', async () => {
+    const response = await postDiff(requestWithBody(JSON.stringify({ oldDbml: 'Table a { id int }', newDbml: '"'.repeat(511990) })))
+    const payload = await response.json()
+    expect(response.status).toBe(400)
+    expect(JSON.stringify(payload)).not.toContain('Maximum call stack size exceeded')
+    expect(payload.diagnostic.schema).toBe('new')
+  })
+
   it('returns parser diagnostics without exposing internal errors', async () => {
     const response = await postDiff(requestWithBody(JSON.stringify({ oldDbml: 'Table old { id int }', newDbml: 'Table broken { }' })))
     const payload = await response.json()
