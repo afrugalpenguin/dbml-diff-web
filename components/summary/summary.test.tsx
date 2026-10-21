@@ -40,3 +40,36 @@ describe('Summary attention items', () => {
     expect(onAttention).toHaveBeenCalledWith({ schema: 'old', table: 't', column: 'a' })
   })
 })
+
+describe('Summary jumps from the diagram', () => {
+  // Enough changed tables that rows start collapsed.
+  const tables = Array.from({ length: 12 }, (_, index) => `t${index}`)
+  const parsed = compareSchemas(
+    tables.map((name) => `Table ${name} {\n  id int\n}`).join('\n'),
+    tables.map((name) => `Table ${name} {\n  id bigint\n}`).join('\n'),
+  ).parsedResult
+  const render = (jumpTo?: { table: string; key: number }) =>
+    act(() => root.render(createElement(Summary, { parsed, counts: parsed.counts, jumpTo })))
+  const button = (text: string) => [...container.querySelectorAll('button')].find((entry) => entry.textContent === text)!
+
+  it('shows, expands, flashes and scrolls to the table even when filters hide it', () => {
+    render()
+    act(() => button('Enums').click())
+    act(() => button('Removed').click())
+    expect(container.querySelector('[id="table-t7"]')).toBeNull()
+    render({ table: 't7', key: 1 })
+    const row = container.querySelector('[id="table-t7"]')
+    expect(row).not.toBeNull()
+    expect(row?.querySelector('button')?.getAttribute('aria-expanded')).toBe('true')
+    expect(row?.querySelector('button')?.className).toContain('summary-flash-row')
+    expect(Element.prototype.scrollIntoView).toHaveBeenCalled()
+  })
+
+  it('opens the Tables section when it is collapsed', () => {
+    render()
+    act(() => (container.querySelector('#summary-tables button') as HTMLButtonElement).click())
+    expect(container.querySelector('[id="table-t3"]')).toBeNull()
+    render({ table: 't3', key: 1 })
+    expect(container.querySelector('[id="table-t3"]')).not.toBeNull()
+  })
+})

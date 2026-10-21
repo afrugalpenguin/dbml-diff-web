@@ -1,7 +1,5 @@
 import type { DiffResult } from '../../lib/diff-types'
-
-export type ChangeFilter = 'All' | 'Added' | 'Removed' | 'Modified'
-export type KindFilter = 'All' | 'Tables' | 'Groups' | 'Enums' | 'Refs'
+import type { ChangeFilter, KindFilter } from '../../lib/summary-jump'
 export type SummarySection = 'attention' | 'tables' | 'groups' | 'enums' | 'refs'
 export type SectionCounts = Record<SummarySection, number>
 
